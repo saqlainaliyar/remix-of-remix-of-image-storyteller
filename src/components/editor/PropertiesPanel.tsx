@@ -434,35 +434,50 @@ function GradientEditor({ value, onChange }: { value: Gradient; onChange: (v: Gr
       )}
       <div className="space-y-1.5">
         {value.stops.map((stop, i) => (
-          <div key={i} className="flex items-center gap-1.5">
-            <input
-              type="color"
-              value={stop.color}
-              onChange={(e) => updateStop(i, { color: e.target.value })}
-              className="h-7 w-8 cursor-pointer rounded border border-input bg-transparent"
-            />
-            <input
-              value={stop.color}
-              onChange={(e) => updateStop(i, { color: e.target.value })}
-              className="flex-1 rounded-md border border-input bg-background px-1.5 py-1 font-mono text-[10px] outline-none focus:ring-2 focus:ring-ring"
-            />
-            <input
-              type="number"
-              min={0}
-              max={100}
-              value={Math.round(stop.position)}
-              onChange={(e) => updateStop(i, { position: Number(e.target.value) })}
-              className="w-12 rounded-md border border-input bg-background px-1.5 py-1 text-[10px] outline-none focus:ring-2 focus:ring-ring"
-            />
-            <button
-              type="button"
-              onClick={() => removeStop(i)}
-              disabled={value.stops.length <= 2}
-              className="rounded p-1 text-muted-foreground hover:bg-accent disabled:opacity-30"
-              title="Remove stop"
-            >
-              <Trash2 className="h-3 w-3" />
-            </button>
+          <div key={i} className="space-y-1 rounded border border-input/60 bg-background/40 p-1.5">
+            <div className="flex items-center gap-1.5">
+              <input
+                type="color"
+                value={stop.color}
+                onChange={(e) => updateStop(i, { color: e.target.value })}
+                className="h-7 w-8 cursor-pointer rounded border border-input bg-transparent"
+              />
+              <input
+                value={stop.color}
+                onChange={(e) => updateStop(i, { color: e.target.value })}
+                className="flex-1 rounded-md border border-input bg-background px-1.5 py-1 font-mono text-[10px] outline-none focus:ring-2 focus:ring-ring"
+              />
+              <input
+                type="number"
+                min={0}
+                max={100}
+                value={Math.round(stop.position)}
+                onChange={(e) => updateStop(i, { position: Number(e.target.value) })}
+                className="w-12 rounded-md border border-input bg-background px-1.5 py-1 text-[10px] outline-none focus:ring-2 focus:ring-ring"
+              />
+              <button
+                type="button"
+                onClick={() => removeStop(i)}
+                disabled={value.stops.length <= 2}
+                className="rounded p-1 text-muted-foreground hover:bg-accent disabled:opacity-30"
+                title="Remove stop"
+              >
+                <Trash2 className="h-3 w-3" />
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] uppercase tracking-wider text-muted-foreground">Opacity</span>
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.01}
+                value={stop.opacity ?? 1}
+                onChange={(e) => updateStop(i, { opacity: Number(e.target.value) })}
+                className="flex-1"
+              />
+              <span className="w-8 text-right text-[10px] tabular-nums text-muted-foreground">{Math.round((stop.opacity ?? 1) * 100)}%</span>
+            </div>
           </div>
         ))}
         <button
