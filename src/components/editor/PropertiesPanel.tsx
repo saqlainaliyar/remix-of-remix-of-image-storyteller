@@ -337,7 +337,7 @@ type FillKind = "solid" | "linear" | "radial" | "transparent";
 
 function fillKind(f: Fill): FillKind {
   if (f === "transparent") return "transparent";
-  if (isGradient(f)) return f.type;
+  if (isGradient(f)) return f.type === "linear" || f.type === "radial" ? f.type : "linear";
   return "solid";
 }
 
