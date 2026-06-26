@@ -1,6 +1,6 @@
 import { useEditor } from "@/lib/editor-store";
-import type { Layer, BackgroundLayer, ImageLayer, TextLayer } from "@/lib/editor-types";
-import { fillToBackground } from "@/lib/fill";
+import type { Layer, BackgroundLayer, ImageLayer, TextLayer, GradientLayer } from "@/lib/editor-types";
+import { fillToBackground, gradientToCSS } from "@/lib/fill";
 import { renderText } from "./text-render";
 import { useCallback, useEffect, useRef } from "react";
 
