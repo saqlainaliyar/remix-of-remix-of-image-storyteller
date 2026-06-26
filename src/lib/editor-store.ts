@@ -122,11 +122,12 @@ interface EditorState {
   setZoom: (z: number) => void;
   toggleGuides: () => void;
 
-  addLayer: (kind: "text" | "image") => void;
+  addLayer: (kind: "text" | "image" | "gradient") => void;
   updateLayer: (id: string, patch: Partial<Layer>) => void;
   updateText: (id: string, patch: Partial<TextLayer>) => void;
   updateImage: (id: string, patch: Partial<ImageLayer>) => void;
   updateBackground: (id: string, patch: Partial<BackgroundLayer>) => void;
+  updateGradient: (id: string, patch: Partial<GradientLayer>) => void;
   removeLayer: (id: string) => void;
   duplicateLayer: (id: string) => void;
   reorder: (id: string, dir: "up" | "down") => void;
