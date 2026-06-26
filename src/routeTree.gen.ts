@@ -14,6 +14,7 @@ import { Route as EditorRouteImport } from './routes/editor'
 import { Route as BrandKitRouteImport } from './routes/brand-kit'
 import { Route as BatchRouteImport } from './routes/batch'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ApiKeysRouteImport } from './routes/api-keys'
 import { Route as ApiDocsRouteImport } from './routes/api-docs'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -42,6 +43,11 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiKeysRoute = ApiKeysRouteImport.update({
+  id: '/api-keys',
+  path: '/api-keys',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiDocsRoute = ApiDocsRouteImport.update({
   id: '/api-docs',
   path: '/api-docs',
@@ -56,6 +62,7 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api-docs': typeof ApiDocsRoute
+  '/api-keys': typeof ApiKeysRoute
   '/auth': typeof AuthRoute
   '/batch': typeof BatchRoute
   '/brand-kit': typeof BrandKitRoute
@@ -65,6 +72,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api-docs': typeof ApiDocsRoute
+  '/api-keys': typeof ApiKeysRoute
   '/auth': typeof AuthRoute
   '/batch': typeof BatchRoute
   '/brand-kit': typeof BrandKitRoute
@@ -75,6 +83,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/api-docs': typeof ApiDocsRoute
+  '/api-keys': typeof ApiKeysRoute
   '/auth': typeof AuthRoute
   '/batch': typeof BatchRoute
   '/brand-kit': typeof BrandKitRoute
@@ -86,6 +95,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/api-docs'
+    | '/api-keys'
     | '/auth'
     | '/batch'
     | '/brand-kit'
@@ -95,6 +105,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/api-docs'
+    | '/api-keys'
     | '/auth'
     | '/batch'
     | '/brand-kit'
@@ -104,6 +115,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/api-docs'
+    | '/api-keys'
     | '/auth'
     | '/batch'
     | '/brand-kit'
@@ -114,6 +126,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApiDocsRoute: typeof ApiDocsRoute
+  ApiKeysRoute: typeof ApiKeysRoute
   AuthRoute: typeof AuthRoute
   BatchRoute: typeof BatchRoute
   BrandKitRoute: typeof BrandKitRoute
@@ -158,6 +171,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api-keys': {
+      id: '/api-keys'
+      path: '/api-keys'
+      fullPath: '/api-keys'
+      preLoaderRoute: typeof ApiKeysRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api-docs': {
       id: '/api-docs'
       path: '/api-docs'
@@ -178,6 +198,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiDocsRoute: ApiDocsRoute,
+  ApiKeysRoute: ApiKeysRoute,
   AuthRoute: AuthRoute,
   BatchRoute: BatchRoute,
   BrandKitRoute: BrandKitRoute,

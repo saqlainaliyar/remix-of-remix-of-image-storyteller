@@ -4,6 +4,7 @@ import { Canvas } from "@/components/editor/Canvas";
 import { LayersPanel } from "@/components/editor/LayersPanel";
 import { PropertiesPanel } from "@/components/editor/PropertiesPanel";
 import { EditorToolbar } from "@/components/editor/EditorToolbar";
+import { AuthGate } from "@/components/AuthGate";
 import { useEffect, useRef } from "react";
 import { useEditor, makeDefaultTemplate } from "@/lib/editor-store";
 import { getTemplate } from "@/lib/storage";
@@ -16,7 +17,11 @@ export const Route = createFileRoute("/editor")({
     ],
   }),
   validateSearch: (s: Record<string, unknown>) => ({ id: typeof s.id === "string" ? s.id : undefined }),
-  component: EditorPage,
+  component: () => (
+    <AuthGate>
+      <EditorPage />
+    </AuthGate>
+  ),
 });
 
 function EditorPage() {

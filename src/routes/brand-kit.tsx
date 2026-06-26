@@ -6,6 +6,8 @@ import type { BrandKit } from "@/lib/editor-types";
 import { FONT_FAMILIES } from "@/lib/canvas-presets";
 import { Plus, Trash2 } from "lucide-react";
 
+import { AuthGate } from "@/components/AuthGate";
+
 export const Route = createFileRoute("/brand-kit")({
   head: () => ({
     meta: [
@@ -13,7 +15,11 @@ export const Route = createFileRoute("/brand-kit")({
       { name: "description", content: "Saved brand colors, fonts, and logos." },
     ],
   }),
-  component: BrandKitPage,
+  component: () => (
+    <AuthGate>
+      <BrandKitPage />
+    </AuthGate>
+  ),
 });
 
 function BrandKitPage() {
