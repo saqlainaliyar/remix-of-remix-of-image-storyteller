@@ -398,13 +398,13 @@ function FillInput({ value, onChange }: { value: Fill; onChange: (v: Fill) => vo
 
 function GradientEditor({ value, onChange }: { value: Gradient; onChange: (v: Gradient) => void }) {
   const update = (patch: Partial<Gradient>) => onChange({ ...value, ...patch });
-  const updateStop = (i: number, patch: Partial<{ color: string; position: number }>) => {
+  const updateStop = (i: number, patch: Partial<{ color: string; position: number; opacity: number }>) => {
     const stops = value.stops.map((s, idx) => (idx === i ? { ...s, ...patch } : s));
     update({ stops });
   };
   const addStop = () => {
     const last = value.stops[value.stops.length - 1];
-    update({ stops: [...value.stops, { color: last?.color ?? "#ffffff", position: 100 }] });
+    update({ stops: [...value.stops, { color: last?.color ?? "#ffffff", position: 100, opacity: 1 }] });
   };
   const removeStop = (i: number) => {
     if (value.stops.length <= 2) return;
