@@ -1,54 +1,92 @@
-## Scope
+# Gradient Overlay Layer + Layer Type Picker
 
-Four targeted changes to the editor — no API/backend changes.
+## 1. New layer type: `gradient`
 
-### 1. Full gradient control
+Extend `src/lib/editor-types.ts`:
 
-Add a reusable gradient model and picker, wired into every color field that should support it.
+- `LayerType` adds `"gradient"`.
+- `Gradient` gains `type: "linear" | "radial" | "angular" | "diamond"` and per-stop `opacity` (0–1).
+- New `GradientLayer extends BaseLayer`:
+  - `gradient: Gradient`
+  - `blendMode: "normal" | "multiply" | "screen" | "overlay" | "soft-light" | "hard-light" | "color-dodge" | "color-burn" | "darken" | "lighten" | "difference" | "exclusion"`
+  - `scale: number` (1 = fits layer box), `reversed: boolean`
+  - Start/end points are derived from the layer box + `rotation` + `scale` (no separate coords needed — angle handles linear/conic, radius handles radial/diamond).
+- Union `Layer` includes `GradientLayer`.
 
-- New types in `src/lib/editor-types.ts`:
-  - `Gradient = { type: "linear" | "radial"; angle: number; stops: { color: string; position: number }[] }`
-  - `Fill = string | Gradient` (string keeps `"transparent"` and hex backwards-compatible)
-  - Switch `BackgroundLayer.color`, `TextStyle.color`, and `TextStyle.bgColor` to `Fill`.
-- Helpers in a new `src/lib/fill.ts`:
-  - `fillToCSS(fill)` → CSS color or `linear-gradient(...)` / `radial-gradient(...)` string.
-  - `fillToTextCSS(fill)` → for text color, returns either `{ color }` or `{ backgroundImage, WebkitBackgroundClip: "text", color: "transparent" }`.
-- New `FillInput` component in `PropertiesPanel.tsx` replacing `ColorInput` everywhere a Fill is used:
-  - Tabs: Solid / Linear / Radial / Transparent.
-  - Linear/Radial: angle slider (0–360°), list of stops with color picker + position (0–100), add/remove stop, min 2 stops.
-  - Live preview swatch.
-- Update `Canvas.tsx` `RenderBackground` and `text-render.tsx` `styleToCSS` to consume Fill via the new helpers (text color uses background-clip when gradient).
-- Migrate existing stored templates lazily: any string color stays a string; only new gradients use the object form.
+## 2. Store changes (`src/lib/editor-store.ts`)
 
-### 2. Remove extra transparent area in workspace
+- `addLayer(kind: "text" | "image" | "gradient")` — gradient default: full-canvas box, linear 90°, two stops (`#000` 0%, `#fff` 100%, opacity 1), blend `normal`, opacity 1, scale 1.
+- `updateGradient(id, patch: Partial<GradientLayer>)` helper.
+- Duplicate/visibility/lock/reorder already generic — no changes.
 
-In `src/components/editor/Canvas.tsx`:
-- Drop the `checker-bg` class on the outer scroll container; use a subtle neutral workspace surface (e.g. `bg-muted/40`).
-- Keep the checker pattern *inside* the canvas frame only (so transparent areas of the design itself still read as transparent), via an inner absolutely-positioned checker layer behind the stage.
-- Tighten padding from `p-8` to `p-6` and remove the `shadow-2xl` outer wrapper's extra footprint — wrapper sized exactly to `template.width * zoom × template.height * zoom`.
+## 3. Rendering (`src/components/editor/Canvas.tsx` + helper)
 
-Result: workspace looks clean (light neutral), and only the actual canvas bounds show the transparency checker when relevant.
+- Add `RenderGradient({ layer })`:
+  - Builds CSS via a new `gradientLayerToCSS(layer)`:
+    - linear → `linear-gradient(angle, stops)`
+    - radial → `radial-gradient(circle <scale*50%>, stops)`
+    - angular → `conic-gradient(from <angle>deg at 50% 50%, stops)`
+    - diamond → CSS-only approximation via two crossed `linear-gradient`s composited with `mask`, OR `conic-gradient` with hard stops (acceptable approximation).
+  - Per-stop opacity baked into stop color via `rgba()` conversion.
+  - `reversed` flips stop positions.
+  - Outer wrapper applies `mixBlendMode: layer.blendMode`, `opacity`, `transform: rotate()`, `willChange: transform, opacity` (GPU hint).
+- When selected, render gradient handles overlay (see §4) inside the same selection chrome that text/image layers use.
 
-### 3. Fix extra space between highlighted word and neighbour
+## 4. On-canvas gradient handles
 
-In `src/components/editor/text-render.tsx`:
-- When walking segments, trim exactly one leading/trailing space from a non-highlight segment that is adjacent to a highlight segment. The highlight's horizontal padding (`bgPaddingX`) then provides the visual separation, eliminating the double-gap (`space + padding`).
-- Keep internal spaces untouched.
+New `GradientHandles` component rendered inside the selection overlay when `layer.type === "gradient"`:
 
-### 4. Wrap second line to the left while keeping layer alignment
+- Linear/Diamond/Angular: a line from layer-box center along the angle vector, with two draggable end caps (start/end) — dragging updates `rotation` and `scale` (distance / half-diagonal).
+- Radial: center dot + one radius handle on the right edge — drags update `scale`.
+- Drag math reuses the existing `dragState` pattern but with a third `mode: "gradient"`. Snap to 0/45/90/135° when shift held; snap to canvas center when within 8px.
 
-Still in `text-render.tsx`:
-- Change the inner per-line wrapper to `display: inline-block; text-align: left; max-width: 100%`, and keep the outer flex container responsible for horizontal placement (`justifyContent` from `layer.align`).
-- Effect: the line as a whole is placed per `align`, but when it wraps the continuation flows from the left edge of that block instead of being re-centered by the browser.
-- Use `align-items: flex-start | center | flex-end` on the outer column to honour `layer.align` for the block, not for each visual wrap line.
+## 5. Layer creation flow
+
+- `LayersPanel` "+" button opens a small popover with four choices: Image, Text, Shape (disabled, "coming soon"), Gradient. Existing Text/Image icon shortcuts remain.
+- Selecting Gradient calls `addLayer("gradient")` and auto-selects the new layer, which makes `PropertiesPanel` show the gradient editor — no extra "tool" state needed.
+
+## 6. Properties panel (`src/components/editor/PropertiesPanel.tsx`)
+
+Add `GradientProps({ layer })`:
+
+- Type select (Linear / Radial / Angular / Diamond) — switching keeps stops.
+- Reuses existing `GradientEditor` stop UI, extended with a per-stop opacity slider and a delete button when >2 stops.
+- Sliders: global Opacity (already in PositionBlock), Rotation (existing), Scale (0.25–4).
+- Blend mode `<Select>` with all 12 modes listed in §1.
+- Reverse toggle button.
+- Reset button → restores default linear gradient at current size.
+
+Wire `layer?.type === "gradient" && <GradientProps layer={layer} />` next to the existing branches.
+
+## 7. Fix secondary style padding
+
+In `src/components/editor/text-render.tsx` the secondary (`*highlighted*`) span currently inherits asymmetric horizontal padding because the inline `<span>` only paints background on the first/last line and ignores `paddingRight` on line wraps. Fix:
+
+- Render secondary segments with `boxDecorationBreak: "clone"` and `WebkitBoxDecorationBreak: "clone"`.
+- Apply `paddingLeft: bgPaddingX` and `paddingRight: bgPaddingX` explicitly (not shorthand) so both sides always match.
+- Add a small negative `marginLeft`/`marginRight` equal to `bgPaddingX` only when the segment is at line start/end so the text baseline aligns with primary text — handled by wrapping segment in an inline-block when `bgPaddingX > 0`.
+
+## 8. Export
+
+`html-to-image` already serializes inline styles, so gradient layers export correctly. Verify by exporting a PNG with a radial overlay; no code change expected.
 
 ## Technical notes
 
-- No store shape change beyond `Fill` widening; reducers don't need updates.
-- `html-to-image` export already handles `background-clip: text` — no export changes needed.
-- All edits limited to: `editor-types.ts`, new `fill.ts`, `text-render.tsx`, `Canvas.tsx`, `PropertiesPanel.tsx`.
+- Blend modes use CSS `mix-blend-mode`, which composites against sibling layers in the same stacking context — the stage div already provides one (`overflow: hidden`).
+- Per-stop opacity is converted to `rgba` at render time; the picker stays `<input type=color>` + a 0–100 opacity slider.
+- No new dependencies. All work is client-side.
 
-## Out of scope
+## Files touched
 
-- No new layer types, no backend, no batch/API changes.
-- Gradient on image border / shadow color (can be a follow-up).
+- `src/lib/editor-types.ts` — new types
+- `src/lib/editor-store.ts` — addLayer/updateGradient
+- `src/lib/fill.ts` — extend gradient CSS for angular/diamond + opacity stops
+- `src/components/editor/Canvas.tsx` — RenderGradient, GradientHandles, gradient drag mode
+- `src/components/editor/LayersPanel.tsx` — layer-type popover, gradient icon
+- `src/components/editor/PropertiesPanel.tsx` — GradientProps + stop opacity
+- `src/components/editor/text-render.tsx` — symmetric secondary padding fix
+
+## Out of scope (flagged as future)
+
+- Freeform/Mesh gradients
+- Saving gradient presets to a Brand Kit (could follow once Cloud is enabled)

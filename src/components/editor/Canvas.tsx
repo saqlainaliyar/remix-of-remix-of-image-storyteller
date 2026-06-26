@@ -1,6 +1,6 @@
 import { useEditor } from "@/lib/editor-store";
-import type { Layer, BackgroundLayer, ImageLayer, TextLayer } from "@/lib/editor-types";
-import { fillToBackground } from "@/lib/fill";
+import type { Layer, BackgroundLayer, ImageLayer, TextLayer, GradientLayer } from "@/lib/editor-types";
+import { fillToBackground, gradientToCSS } from "@/lib/fill";
 import { renderText } from "./text-render";
 import { useCallback, useEffect, useRef } from "react";
 
@@ -191,6 +191,7 @@ function LayerView({
       {layer.type === "background" && <RenderBackground layer={layer as BackgroundLayer} />}
       {layer.type === "image" && <RenderImage layer={layer as ImageLayer} />}
       {layer.type === "text" && renderText(layer as TextLayer)}
+      {layer.type === "gradient" && <RenderGradient layer={layer as GradientLayer} />}
 
       {selected && showGuides && layer.type !== "background" && (
         <>
@@ -218,6 +219,7 @@ function LayerView({
               }}
             />
           ))}
+          {layer.type === "gradient" && <GradientHandles layer={layer as GradientLayer} />}
         </>
       )}
     </div>
@@ -317,6 +319,145 @@ function RenderImage({ layer }: { layer: ImageLayer }) {
       ) : (
         <span>Image placeholder</span>
       )}
+    </div>
+  );
+}
+
+function RenderGradient({ layer }: { layer: GradientLayer }) {
+  const g = layer.reversed
+    ? { ...layer.gradient, stops: layer.gradient.stops.map((s) => ({ ...s, position: 100 - s.position })) }
+    : layer.gradient;
+  // Apply scale by sizing the gradient via background-size (works for radial/linear/diamond).
+  const size = `${layer.scale * 100}% ${layer.scale * 100}%`;
+  return (
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        backgroundImage: gradientToCSS(g),
+        backgroundSize: size,
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        mixBlendMode: layer.blendMode === "normal" ? undefined : (layer.blendMode as React.CSSProperties["mixBlendMode"]),
+        willChange: "transform, opacity",
+      }}
+    />
+  );
+}
+
+function GradientHandles({ layer }: { layer: GradientLayer }) {
+  const updateGradient = useEditor((s) => s.updateGradient);
+  const pushHistory = useEditor((s) => s.pushHistory);
+  const zoom = useEditor((s) => s.zoom);
+  const ref = useRef<HTMLDivElement>(null);
+
+  const angle = layer.gradient.angle;
+  const isRadial = layer.gradient.type === "radial" || layer.gradient.type === "diamond";
+
+  const onDown = (e: React.MouseEvent, which: "end" | "scale") => {
+    e.stopPropagation();
+    pushHistory();
+    const rect = ref.current?.getBoundingClientRect();
+    if (!rect) return;
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const onMove = (ev: MouseEvent) => {
+      const dx = ev.clientX - cx;
+      const dy = ev.clientY - cy;
+      if (which === "end") {
+        // CSS gradient angle: 0deg points up, increases clockwise.
+        const deg = (Math.atan2(dx, -dy) * 180) / Math.PI;
+        let a = (deg + 360) % 360;
+        if (ev.shiftKey) a = Math.round(a / 15) * 15;
+        updateGradient(layer.id, { gradient: { ...layer.gradient, angle: a } });
+      } else {
+        const dist = Math.hypot(dx, dy) / zoom;
+        const halfDiag = Math.hypot(layer.width, layer.height) / 2;
+        const scale = Math.max(0.25, Math.min(4, dist / Math.max(1, halfDiag) * 2));
+        updateGradient(layer.id, { scale });
+      }
+    };
+    const onUp = () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  };
+
+  // End point along angle direction (CSS angle: 0 = up, clockwise).
+  const rad = (angle - 90) * (Math.PI / 180);
+  const endX = 50 + Math.cos(rad) * 40;
+  const endY = 50 + Math.sin(rad) * 40;
+
+  return (
+    <div ref={ref} style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+      {/* Center dot */}
+      <div
+        style={{
+          position: "absolute",
+          left: "50%",
+          top: "50%",
+          width: 10,
+          height: 10,
+          marginLeft: -5,
+          marginTop: -5,
+          borderRadius: 9999,
+          background: "#fff",
+          border: "2px solid #4f46e5",
+        }}
+      />
+      {!isRadial && (
+        <>
+          {/* Direction line */}
+          <svg
+            style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+          >
+            <line x1="50" y1="50" x2={endX} y2={endY} stroke="#4f46e5" strokeWidth="0.6" strokeDasharray="2 1.5" />
+          </svg>
+          {/* End handle */}
+          <div
+            onMouseDown={(e) => onDown(e, "end")}
+            style={{
+              position: "absolute",
+              left: `${endX}%`,
+              top: `${endY}%`,
+              width: 16,
+              height: 16,
+              marginLeft: -8,
+              marginTop: -8,
+              borderRadius: 9999,
+              background: "#4f46e5",
+              border: "2px solid #fff",
+              cursor: "grab",
+              pointerEvents: "auto",
+              boxShadow: "0 1px 4px rgba(0,0,0,0.3)",
+            }}
+            title="Drag to rotate gradient (Shift = snap 15°)"
+          />
+        </>
+      )}
+      {/* Scale handle (right edge of box) */}
+      <div
+        onMouseDown={(e) => onDown(e, "scale")}
+        style={{
+          position: "absolute",
+          left: `${50 + 50 * layer.scale}%`,
+          top: "50%",
+          width: 14,
+          height: 14,
+          marginLeft: -7,
+          marginTop: -7,
+          borderRadius: 3,
+          background: "#fff",
+          border: "2px solid #4f46e5",
+          cursor: "ew-resize",
+          pointerEvents: "auto",
+        }}
+        title="Drag to scale gradient"
+      />
     </div>
   );
 }

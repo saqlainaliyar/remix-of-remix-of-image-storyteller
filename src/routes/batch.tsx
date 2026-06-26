@@ -222,7 +222,7 @@ function renderTemplateInto(host: HTMLDivElement, t: Template) {
         img.style.objectFit = layer.fit === "fill" || layer.fit === "stretch" ? "fill" : (layer.fit as string);
         el.appendChild(img);
       }
-    } else {
+    } else if (layer.type === "text") {
       // text -- simplified renderer mirroring text-render
       const wrapper = document.createElement("div");
       wrapper.style.cssText = `width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;text-align:${layer.align};font-family:"${layer.fontFamily}",sans-serif;font-size:${layer.fontSize}px;letter-spacing:${layer.letterSpacing}px;line-height:${layer.lineHeight};overflow:hidden;`;

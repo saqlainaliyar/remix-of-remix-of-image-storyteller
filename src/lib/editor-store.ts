@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Layer, Template, TextLayer, ImageLayer, BackgroundLayer, TextStyle } from "./editor-types";
+import type { Layer, Template, TextLayer, ImageLayer, BackgroundLayer, GradientLayer, TextStyle } from "./editor-types";
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 
@@ -122,11 +122,12 @@ interface EditorState {
   setZoom: (z: number) => void;
   toggleGuides: () => void;
 
-  addLayer: (kind: "text" | "image") => void;
+  addLayer: (kind: "text" | "image" | "gradient") => void;
   updateLayer: (id: string, patch: Partial<Layer>) => void;
   updateText: (id: string, patch: Partial<TextLayer>) => void;
   updateImage: (id: string, patch: Partial<ImageLayer>) => void;
   updateBackground: (id: string, patch: Partial<BackgroundLayer>) => void;
+  updateGradient: (id: string, patch: Partial<GradientLayer>) => void;
   removeLayer: (id: string) => void;
   duplicateLayer: (id: string) => void;
   reorder: (id: string, dir: "up" | "down") => void;
@@ -204,7 +205,8 @@ export const useEditor = create<EditorState>((set, get) => ({
               primary: { ...DEFAULT_PRIMARY, bgColor: "transparent", color: "#0a0a0a" },
               secondary: { ...DEFAULT_SECONDARY, bgColor: "transparent" },
             }
-          : {
+          : kind === "image"
+          ? {
               id,
               type: "image",
               name: `image-${s.template.layers.length}`,
@@ -222,6 +224,30 @@ export const useEditor = create<EditorState>((set, get) => ({
               radius: 0,
               borderColor: "#000000",
               borderWidth: 0,
+            }
+          : {
+              id,
+              type: "gradient",
+              name: `gradient-${s.template.layers.length}`,
+              x: 0,
+              y: 0,
+              width: w,
+              height: h,
+              rotation: 0,
+              opacity: 1,
+              visible: true,
+              locked: false,
+              gradient: {
+                type: "linear",
+                angle: 90,
+                stops: [
+                  { color: "#000000", position: 0, opacity: 1 },
+                  { color: "#ffffff", position: 100, opacity: 0 },
+                ],
+              },
+              blendMode: "normal",
+              scale: 1,
+              reversed: false,
             };
       return {
         template: { ...s.template, layers: [...s.template.layers, layer], updatedAt: Date.now() },
@@ -242,6 +268,7 @@ export const useEditor = create<EditorState>((set, get) => ({
   updateText: (id, patch) => get().updateLayer(id, patch as Partial<Layer>),
   updateImage: (id, patch) => get().updateLayer(id, patch as Partial<Layer>),
   updateBackground: (id, patch) => get().updateLayer(id, patch as Partial<Layer>),
+  updateGradient: (id, patch) => get().updateLayer(id, patch as Partial<Layer>),
 
   removeLayer: (id) => {
     get().pushHistory();

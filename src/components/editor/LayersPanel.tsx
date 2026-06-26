@@ -1,6 +1,7 @@
 import { useEditor } from "@/lib/editor-store";
 import type { Layer } from "@/lib/editor-types";
-import { Eye, EyeOff, Lock, Unlock, Copy, Trash2, ChevronUp, ChevronDown, Plus, Type, Image as ImageIcon } from "lucide-react";
+import { Eye, EyeOff, Lock, Unlock, Copy, Trash2, ChevronUp, ChevronDown, Plus, Type, Image as ImageIcon, Palette, Square } from "lucide-react";
+import { useState } from "react";
 
 export function LayersPanel() {
   const layers = useEditor((s) => s.template.layers);
@@ -35,29 +36,7 @@ export function LayersPanel() {
         <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Layers
         </span>
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => addLayer("text")}
-            title="Add text"
-            className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-          >
-            <Type className="h-3.5 w-3.5" />
-          </button>
-          <button
-            onClick={() => addLayer("image")}
-            title="Add image"
-            className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-          >
-            <ImageIcon className="h-3.5 w-3.5" />
-          </button>
-          <button
-            onClick={() => addLayer("text")}
-            title="New layer"
-            className="rounded-md p-1.5 text-primary hover:bg-accent"
-          >
-            <Plus className="h-3.5 w-3.5" />
-          </button>
-        </div>
+        <NewLayerButtons addLayer={addLayer} />
       </div>
 
       <div className="flex-1 overflow-auto py-1">
@@ -104,6 +83,7 @@ function LayerRow({
   const icon =
     layer.type === "text" ? <Type className="h-3.5 w-3.5" /> :
     layer.type === "image" ? <ImageIcon className="h-3.5 w-3.5" /> :
+    layer.type === "gradient" ? <Palette className="h-3.5 w-3.5" /> :
     <div className="h-3.5 w-3.5 rounded-sm bg-foreground/40" />;
 
   return (
@@ -128,5 +108,65 @@ function LayerRow({
         {layer.visible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3 opacity-40" />}
       </button>
     </div>
+  );
+}
+
+function NewLayerButtons({ addLayer }: { addLayer: (k: "text" | "image" | "gradient") => void }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="flex items-center gap-1">
+      <button
+        onClick={() => addLayer("text")}
+        title="Add text"
+        className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+      >
+        <Type className="h-3.5 w-3.5" />
+      </button>
+      <button
+        onClick={() => addLayer("image")}
+        title="Add image"
+        className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+      >
+        <ImageIcon className="h-3.5 w-3.5" />
+      </button>
+      <button
+        onClick={() => addLayer("gradient")}
+        title="Add gradient overlay"
+        className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+      >
+        <Palette className="h-3.5 w-3.5" />
+      </button>
+      <div className="relative">
+        <button
+          onClick={() => setOpen((v) => !v)}
+          title="New layer"
+          className="rounded-md p-1.5 text-primary hover:bg-accent"
+        >
+          <Plus className="h-3.5 w-3.5" />
+        </button>
+        {open && (
+          <div className="absolute right-0 top-full z-40 mt-1 w-44 rounded-md border border-border bg-popover p-1 shadow-lg">
+            <PickItem icon={<ImageIcon className="h-3.5 w-3.5" />} label="Image layer" onClick={() => { addLayer("image"); setOpen(false); }} />
+            <PickItem icon={<Type className="h-3.5 w-3.5" />} label="Text layer" onClick={() => { addLayer("text"); setOpen(false); }} />
+            <PickItem icon={<Square className="h-3.5 w-3.5" />} label="Shape layer" disabled />
+            <PickItem icon={<Palette className="h-3.5 w-3.5" />} label="Gradient layer" onClick={() => { addLayer("gradient"); setOpen(false); }} />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function PickItem({ icon, label, onClick, disabled }: { icon: React.ReactNode; label: string; onClick?: () => void; disabled?: boolean }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-xs hover:bg-accent disabled:opacity-40 disabled:hover:bg-transparent"
+    >
+      <span className="text-muted-foreground">{icon}</span>
+      <span className="flex-1 text-left">{label}</span>
+      {disabled && <span className="text-[9px] uppercase tracking-wider text-muted-foreground">Soon</span>}
+    </button>
   );
 }

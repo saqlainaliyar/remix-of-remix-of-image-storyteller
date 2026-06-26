@@ -1,8 +1,8 @@
 import { useEditor } from "@/lib/editor-store";
-import type { BackgroundLayer, Fill, Gradient, ImageLayer, Layer, TextLayer, TextStyle } from "@/lib/editor-types";
+import type { BackgroundLayer, BlendMode, Fill, Gradient, GradientLayer, GradientType, ImageLayer, Layer, TextLayer, TextStyle } from "@/lib/editor-types";
 import { FONT_FAMILIES } from "@/lib/canvas-presets";
 import { DEFAULT_LINEAR_GRADIENT, fillToSwatch, isGradient } from "@/lib/fill";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, FlipHorizontal2, RotateCcw } from "lucide-react";
 
 export function PropertiesPanel() {
   const layers = useEditor((s) => s.template.layers);
@@ -25,6 +25,7 @@ export function PropertiesPanel() {
         {layer?.type === "background" && <BackgroundProps layer={layer} />}
         {layer?.type === "image" && <ImageProps layer={layer} />}
         {layer?.type === "text" && <TextProps layer={layer} />}
+        {layer?.type === "gradient" && <GradientProps layer={layer} />}
       </div>
     </aside>
   );
@@ -337,7 +338,7 @@ type FillKind = "solid" | "linear" | "radial" | "transparent";
 
 function fillKind(f: Fill): FillKind {
   if (f === "transparent") return "transparent";
-  if (isGradient(f)) return f.type;
+  if (isGradient(f)) return f.type === "linear" || f.type === "radial" ? f.type : "linear";
   return "solid";
 }
 
@@ -397,13 +398,13 @@ function FillInput({ value, onChange }: { value: Fill; onChange: (v: Fill) => vo
 
 function GradientEditor({ value, onChange }: { value: Gradient; onChange: (v: Gradient) => void }) {
   const update = (patch: Partial<Gradient>) => onChange({ ...value, ...patch });
-  const updateStop = (i: number, patch: Partial<{ color: string; position: number }>) => {
+  const updateStop = (i: number, patch: Partial<{ color: string; position: number; opacity: number }>) => {
     const stops = value.stops.map((s, idx) => (idx === i ? { ...s, ...patch } : s));
     update({ stops });
   };
   const addStop = () => {
     const last = value.stops[value.stops.length - 1];
-    update({ stops: [...value.stops, { color: last?.color ?? "#ffffff", position: 100 }] });
+    update({ stops: [...value.stops, { color: last?.color ?? "#ffffff", position: 100, opacity: 1 }] });
   };
   const removeStop = (i: number) => {
     if (value.stops.length <= 2) return;
@@ -433,35 +434,50 @@ function GradientEditor({ value, onChange }: { value: Gradient; onChange: (v: Gr
       )}
       <div className="space-y-1.5">
         {value.stops.map((stop, i) => (
-          <div key={i} className="flex items-center gap-1.5">
-            <input
-              type="color"
-              value={stop.color}
-              onChange={(e) => updateStop(i, { color: e.target.value })}
-              className="h-7 w-8 cursor-pointer rounded border border-input bg-transparent"
-            />
-            <input
-              value={stop.color}
-              onChange={(e) => updateStop(i, { color: e.target.value })}
-              className="flex-1 rounded-md border border-input bg-background px-1.5 py-1 font-mono text-[10px] outline-none focus:ring-2 focus:ring-ring"
-            />
-            <input
-              type="number"
-              min={0}
-              max={100}
-              value={Math.round(stop.position)}
-              onChange={(e) => updateStop(i, { position: Number(e.target.value) })}
-              className="w-12 rounded-md border border-input bg-background px-1.5 py-1 text-[10px] outline-none focus:ring-2 focus:ring-ring"
-            />
-            <button
-              type="button"
-              onClick={() => removeStop(i)}
-              disabled={value.stops.length <= 2}
-              className="rounded p-1 text-muted-foreground hover:bg-accent disabled:opacity-30"
-              title="Remove stop"
-            >
-              <Trash2 className="h-3 w-3" />
-            </button>
+          <div key={i} className="space-y-1 rounded border border-input/60 bg-background/40 p-1.5">
+            <div className="flex items-center gap-1.5">
+              <input
+                type="color"
+                value={stop.color}
+                onChange={(e) => updateStop(i, { color: e.target.value })}
+                className="h-7 w-8 cursor-pointer rounded border border-input bg-transparent"
+              />
+              <input
+                value={stop.color}
+                onChange={(e) => updateStop(i, { color: e.target.value })}
+                className="flex-1 rounded-md border border-input bg-background px-1.5 py-1 font-mono text-[10px] outline-none focus:ring-2 focus:ring-ring"
+              />
+              <input
+                type="number"
+                min={0}
+                max={100}
+                value={Math.round(stop.position)}
+                onChange={(e) => updateStop(i, { position: Number(e.target.value) })}
+                className="w-12 rounded-md border border-input bg-background px-1.5 py-1 text-[10px] outline-none focus:ring-2 focus:ring-ring"
+              />
+              <button
+                type="button"
+                onClick={() => removeStop(i)}
+                disabled={value.stops.length <= 2}
+                className="rounded p-1 text-muted-foreground hover:bg-accent disabled:opacity-30"
+                title="Remove stop"
+              >
+                <Trash2 className="h-3 w-3" />
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] uppercase tracking-wider text-muted-foreground">Opacity</span>
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.01}
+                value={stop.opacity ?? 1}
+                onChange={(e) => updateStop(i, { opacity: Number(e.target.value) })}
+                className="flex-1"
+              />
+              <span className="w-8 text-right text-[10px] tabular-nums text-muted-foreground">{Math.round((stop.opacity ?? 1) * 100)}%</span>
+            </div>
           </div>
         ))}
         <button
@@ -472,6 +488,85 @@ function GradientEditor({ value, onChange }: { value: Gradient; onChange: (v: Gr
           <Plus className="h-3 w-3" /> Add stop
         </button>
       </div>
+    </div>
+  );
+}
+
+const BLEND_MODES: BlendMode[] = [
+  "normal", "multiply", "screen", "overlay", "soft-light", "hard-light",
+  "color-dodge", "color-burn", "darken", "lighten", "difference", "exclusion",
+];
+
+const GRADIENT_TYPES: GradientType[] = ["linear", "radial", "angular", "diamond"];
+
+function GradientProps({ layer }: { layer: GradientLayer }) {
+  const update = useEditor((s) => s.updateGradient);
+  const setG = (patch: Partial<Gradient>) =>
+    update(layer.id, { gradient: { ...layer.gradient, ...patch } });
+
+  const reset = () => {
+    update(layer.id, {
+      gradient: {
+        type: "linear",
+        angle: 90,
+        stops: [
+          { color: "#000000", position: 0, opacity: 1 },
+          { color: "#ffffff", position: 100, opacity: 0 },
+        ],
+      },
+      blendMode: "normal",
+      scale: 1,
+      reversed: false,
+    });
+  };
+
+  return (
+    <div className="space-y-4">
+      <Field label="Gradient type">
+        <Select
+          value={layer.gradient.type}
+          onChange={(v) => setG({ type: v })}
+          options={GRADIENT_TYPES.map((t) => ({ label: t[0].toUpperCase() + t.slice(1), value: t }))}
+        />
+      </Field>
+
+      <Field label="Blend mode">
+        <Select
+          value={layer.blendMode}
+          onChange={(v) => update(layer.id, { blendMode: v })}
+          options={BLEND_MODES.map((m) => ({ label: m, value: m }))}
+        />
+      </Field>
+
+      <Row>
+        <Field label="Angle">
+          <NumberInput value={layer.gradient.angle} onChange={(v) => setG({ angle: v })} suffix="°" />
+        </Field>
+        <Field label="Scale">
+          <NumberInput value={layer.scale * 100} onChange={(v) => update(layer.id, { scale: Math.max(0.25, Math.min(4, v / 100)) })} suffix="%" />
+        </Field>
+      </Row>
+
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => update(layer.id, { reversed: !layer.reversed })}
+          className={`flex flex-1 items-center justify-center gap-1.5 rounded-md border border-input px-3 py-1.5 text-xs hover:bg-accent ${layer.reversed ? "bg-accent" : ""}`}
+        >
+          <FlipHorizontal2 className="h-3.5 w-3.5" /> Reverse
+        </button>
+        <button
+          type="button"
+          onClick={reset}
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-md border border-input px-3 py-1.5 text-xs hover:bg-accent"
+        >
+          <RotateCcw className="h-3.5 w-3.5" /> Reset
+        </button>
+      </div>
+
+      <Field label="Color stops">
+        <GradientEditor value={layer.gradient} onChange={(g) => update(layer.id, { gradient: g })} />
+      </Field>
     </div>
   );
 }
