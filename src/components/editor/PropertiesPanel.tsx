@@ -1,8 +1,8 @@
 import { useEditor } from "@/lib/editor-store";
-import type { BackgroundLayer, Fill, Gradient, ImageLayer, Layer, TextLayer, TextStyle } from "@/lib/editor-types";
+import type { BackgroundLayer, BlendMode, Fill, Gradient, GradientLayer, GradientType, ImageLayer, Layer, TextLayer, TextStyle } from "@/lib/editor-types";
 import { FONT_FAMILIES } from "@/lib/canvas-presets";
 import { DEFAULT_LINEAR_GRADIENT, fillToSwatch, isGradient } from "@/lib/fill";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, FlipHorizontal2, RotateCcw } from "lucide-react";
 
 export function PropertiesPanel() {
   const layers = useEditor((s) => s.template.layers);
