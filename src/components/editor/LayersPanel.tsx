@@ -83,6 +83,7 @@ function LayerRow({
   const icon =
     layer.type === "text" ? <Type className="h-3.5 w-3.5" /> :
     layer.type === "image" ? <ImageIcon className="h-3.5 w-3.5" /> :
+    layer.type === "gradient" ? <Palette className="h-3.5 w-3.5" /> :
     <div className="h-3.5 w-3.5 rounded-sm bg-foreground/40" />;
 
   return (
