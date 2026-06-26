@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Layer, Template, TextLayer, ImageLayer, BackgroundLayer, TextStyle } from "./editor-types";
+import type { Layer, Template, TextLayer, ImageLayer, BackgroundLayer, GradientLayer, TextStyle } from "./editor-types";
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 
