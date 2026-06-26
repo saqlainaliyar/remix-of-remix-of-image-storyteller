@@ -321,3 +321,25 @@ function RenderImage({ layer }: { layer: ImageLayer }) {
     </div>
   );
 }
+
+function RenderGradient({ layer }: { layer: GradientLayer }) {
+  const g = layer.reversed
+    ? { ...layer.gradient, stops: layer.gradient.stops.map((s) => ({ ...s, position: 100 - s.position })) }
+    : layer.gradient;
+  // Apply scale by sizing the gradient via background-size (works for radial/linear/diamond).
+  const size = `${layer.scale * 100}% ${layer.scale * 100}%`;
+  return (
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        backgroundImage: gradientToCSS(g),
+        backgroundSize: size,
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        mixBlendMode: layer.blendMode === "normal" ? undefined : (layer.blendMode as React.CSSProperties["mixBlendMode"]),
+        willChange: "transform, opacity",
+      }}
+    />
+  );
+}
