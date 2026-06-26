@@ -59,6 +59,9 @@ export const authStore = {
 
 export function useAuth() {
   const [s, setS] = useState<AuthState>(() => authStore.get());
-  useEffect(() => authStore.subscribe(setS), []);
+  useEffect(() => {
+    const unsub = authStore.subscribe(setS);
+    return () => { unsub(); };
+  }, []);
   return s;
 }
