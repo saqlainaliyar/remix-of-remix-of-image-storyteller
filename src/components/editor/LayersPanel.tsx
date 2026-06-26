@@ -1,6 +1,7 @@
 import { useEditor } from "@/lib/editor-store";
 import type { Layer } from "@/lib/editor-types";
-import { Eye, EyeOff, Lock, Unlock, Copy, Trash2, ChevronUp, ChevronDown, Plus, Type, Image as ImageIcon } from "lucide-react";
+import { Eye, EyeOff, Lock, Unlock, Copy, Trash2, ChevronUp, ChevronDown, Plus, Type, Image as ImageIcon, Palette, Square } from "lucide-react";
+import { useState } from "react";
 
 export function LayersPanel() {
   const layers = useEditor((s) => s.template.layers);
