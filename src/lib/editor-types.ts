@@ -20,14 +20,38 @@ export type MaskShape = "none" | "rounded" | "circle";
 export interface GradientStop {
   color: string;
   position: number; // 0..100
+  opacity?: number; // 0..1, default 1
 }
+export type GradientType = "linear" | "radial" | "angular" | "diamond";
 export interface Gradient {
-  type: "linear" | "radial";
-  angle: number; // degrees, used for linear
+  type: GradientType;
+  angle: number; // degrees, used for linear / angular / diamond
   stops: GradientStop[];
 }
 /** A solid color string (hex / rgb / "transparent") or a gradient. */
 export type Fill = string | Gradient;
+
+export type BlendMode =
+  | "normal"
+  | "multiply"
+  | "screen"
+  | "overlay"
+  | "soft-light"
+  | "hard-light"
+  | "color-dodge"
+  | "color-burn"
+  | "darken"
+  | "lighten"
+  | "difference"
+  | "exclusion";
+
+export interface GradientLayer extends BaseLayer {
+  type: "gradient";
+  gradient: Gradient;
+  blendMode: BlendMode;
+  scale: number; // 0.25..4, default 1
+  reversed: boolean;
+}
 
 export interface BackgroundLayer extends BaseLayer {
   type: "background";
