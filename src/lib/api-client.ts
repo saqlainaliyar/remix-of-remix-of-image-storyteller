@@ -124,4 +124,35 @@ export const api = {
     // Brand kit is kept client-side for now; expose hooks for future server sync.
     get: async (): Promise<BrandKit | null> => null,
   },
+
+  keys: {
+    list: () => request<{ keys: ApiKeyInfo[] }>("/api/keys"),
+    create: (name: string) =>
+      request<ApiKeyCreated>("/api/keys", {
+        method: "POST",
+        body: JSON.stringify({ name }),
+      }),
+    remove: (id: string) =>
+      request<{ ok: true }>(`/api/keys/${id}`, { method: "DELETE" }),
+  },
 };
+
+export interface ApiKeyInfo {
+  id: string;
+  name: string;
+  prefix: string;
+  createdAt: string;
+  lastUsedAt: string | null;
+  revokedAt: string | null;
+  used: number;
+  limit: number;
+}
+
+export interface ApiKeyCreated {
+  key: string;
+  id: string;
+  name: string;
+  prefix: string;
+  createdAt: string;
+  limit: number;
+}
