@@ -8,6 +8,8 @@ import { toPng } from "html-to-image";
 import { fillToBackground } from "@/lib/fill";
 import { Download, Loader2 } from "lucide-react";
 
+import { AuthGate } from "@/components/AuthGate";
+
 export const Route = createFileRoute("/batch")({
   head: () => ({
     meta: [
@@ -15,7 +17,11 @@ export const Route = createFileRoute("/batch")({
       { name: "description", content: "Bulk-render images from a CSV by mapping columns to template variables." },
     ],
   }),
-  component: BatchPage,
+  component: () => (
+    <AuthGate>
+      <BatchPage />
+    </AuthGate>
+  ),
 });
 
 function parseCSV(text: string): { headers: string[]; rows: Record<string, string>[] } {

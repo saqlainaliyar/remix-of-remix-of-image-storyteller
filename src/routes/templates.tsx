@@ -9,6 +9,8 @@ import { api, assetUrl } from "@/lib/api-client";
 import { useAuth } from "@/lib/auth-store";
 import { AuthBadge } from "@/components/AuthGate";
 
+import { AuthGate } from "@/components/AuthGate";
+
 export const Route = createFileRoute("/templates")({
   head: () => ({
     meta: [
@@ -16,7 +18,11 @@ export const Route = createFileRoute("/templates")({
       { name: "description", content: "Your saved image templates." },
     ],
   }),
-  component: TemplatesPage,
+  component: () => (
+    <AuthGate>
+      <TemplatesPage />
+    </AuthGate>
+  ),
 });
 
 function TemplatesPage() {

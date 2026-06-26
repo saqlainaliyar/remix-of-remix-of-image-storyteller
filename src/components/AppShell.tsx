@@ -1,18 +1,22 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Sparkles } from "lucide-react";
 import type { ReactNode } from "react";
+import { AuthBadge } from "@/components/AuthGate";
+import { useAuth } from "@/lib/auth-store";
 
 const NAV = [
-  { to: "/", label: "Home" },
-  { to: "/editor", label: "Editor" },
-  { to: "/templates", label: "Templates" },
-  { to: "/brand-kit", label: "Brand Kit" },
-  { to: "/batch", label: "Batch Render" },
-  { to: "/api-docs", label: "API" },
+  { to: "/", label: "Home", auth: false },
+  { to: "/editor", label: "Editor", auth: true },
+  { to: "/templates", label: "Templates", auth: true },
+  { to: "/brand-kit", label: "Brand Kit", auth: true },
+  { to: "/batch", label: "Batch Render", auth: true },
+  { to: "/api-keys", label: "API Keys", auth: true },
+  { to: "/api-docs", label: "API Docs", auth: false },
 ];
 
 export function AppShell({ children, fullBleed = false }: { children: ReactNode; fullBleed?: boolean }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { user } = useAuth();
 
   return (
     <div className="flex h-screen flex-col bg-background text-foreground">
@@ -25,7 +29,7 @@ export function AppShell({ children, fullBleed = false }: { children: ReactNode;
             <span className="text-sm font-semibold tracking-tight">Frameforge</span>
           </Link>
           <nav className="hidden items-center gap-1 md:flex">
-            {NAV.map((item) => {
+            {NAV.filter((n) => !n.auth || user).map((item) => {
               const active =
                 item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
               return (
@@ -44,19 +48,23 @@ export function AppShell({ children, fullBleed = false }: { children: ReactNode;
             })}
           </nav>
         </div>
-        <div className="flex items-center gap-2">
-          <a
-            href="https://github.com"
-            className="hidden text-xs text-muted-foreground hover:text-foreground sm:inline"
-          >
-            Docs
-          </a>
-          <Link
-            to="/editor"
-            className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:opacity-90"
-          >
-            Open Editor
-          </Link>
+        <div className="flex items-center gap-3">
+          <AuthBadge />
+          {user ? (
+            <Link
+              to="/editor"
+              className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:opacity-90"
+            >
+              Open Editor
+            </Link>
+          ) : (
+            <Link
+              to="/auth"
+              className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:opacity-90"
+            >
+              Sign in
+            </Link>
+          )}
         </div>
       </header>
       <main className={fullBleed ? "flex-1 overflow-hidden" : "flex-1 overflow-auto"}>

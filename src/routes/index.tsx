@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
+import { useAuth } from "@/lib/auth-store";
 import { ArrowRight, Image, Layers, Sparkles, Zap, Code2, Database } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -15,6 +16,9 @@ export const Route = createFileRoute("/")({
 });
 
 function Landing() {
+  const { user } = useAuth();
+  const ctaTo = user ? "/editor" : "/auth";
+  const ctaLabel = user ? "Launch editor" : "Sign in to start";
   return (
     <AppShell>
       <section className="relative overflow-hidden border-b border-border bg-gradient-to-b from-background to-secondary/40">
@@ -32,11 +36,11 @@ function Landing() {
             ads, and personalized campaigns.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Link to="/editor" className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-medium text-primary-foreground hover:opacity-90">
-              Launch editor <ArrowRight className="h-4 w-4" />
+            <Link to={ctaTo} className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-medium text-primary-foreground hover:opacity-90">
+              {ctaLabel} <ArrowRight className="h-4 w-4" />
             </Link>
-            <Link to="/templates" className="inline-flex items-center gap-2 rounded-lg border border-input bg-background px-5 py-3 text-sm font-medium hover:bg-accent">
-              Browse templates
+            <Link to={user ? "/templates" : "/auth"} className="inline-flex items-center gap-2 rounded-lg border border-input bg-background px-5 py-3 text-sm font-medium hover:bg-accent">
+              {user ? "Browse templates" : "Create account"}
             </Link>
           </div>
 
@@ -104,9 +108,9 @@ function Landing() {
       <section className="py-20">
         <div className="mx-auto max-w-3xl px-6 text-center">
           <h2 className="text-3xl font-semibold tracking-tight">Start designing in seconds.</h2>
-          <p className="mt-3 text-muted-foreground">No accounts, no setup. Your work stays in your browser until you're ready to ship.</p>
-          <Link to="/editor" className="mt-6 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-medium text-primary-foreground hover:opacity-90">
-            Open the editor <ArrowRight className="h-4 w-4" />
+          <p className="mt-3 text-muted-foreground">Create a free account to save templates, render via API, and sync across devices.</p>
+          <Link to={ctaTo} className="mt-6 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-medium text-primary-foreground hover:opacity-90">
+            {ctaLabel} <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       </section>
