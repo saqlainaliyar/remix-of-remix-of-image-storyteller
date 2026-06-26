@@ -205,7 +205,8 @@ export const useEditor = create<EditorState>((set, get) => ({
               primary: { ...DEFAULT_PRIMARY, bgColor: "transparent", color: "#0a0a0a" },
               secondary: { ...DEFAULT_SECONDARY, bgColor: "transparent" },
             }
-          : {
+          : kind === "image"
+          ? {
               id,
               type: "image",
               name: `image-${s.template.layers.length}`,
@@ -223,6 +224,30 @@ export const useEditor = create<EditorState>((set, get) => ({
               radius: 0,
               borderColor: "#000000",
               borderWidth: 0,
+            }
+          : {
+              id,
+              type: "gradient",
+              name: `gradient-${s.template.layers.length}`,
+              x: 0,
+              y: 0,
+              width: w,
+              height: h,
+              rotation: 0,
+              opacity: 1,
+              visible: true,
+              locked: false,
+              gradient: {
+                type: "linear",
+                angle: 90,
+                stops: [
+                  { color: "#000000", position: 0, opacity: 1 },
+                  { color: "#ffffff", position: 100, opacity: 0 },
+                ],
+              },
+              blendMode: "normal",
+              scale: 1,
+              reversed: false,
             };
       return {
         template: { ...s.template, layers: [...s.template.layers, layer], updatedAt: Date.now() },
