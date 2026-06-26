@@ -191,6 +191,7 @@ function LayerView({
       {layer.type === "background" && <RenderBackground layer={layer as BackgroundLayer} />}
       {layer.type === "image" && <RenderImage layer={layer as ImageLayer} />}
       {layer.type === "text" && renderText(layer as TextLayer)}
+      {layer.type === "gradient" && <RenderGradient layer={layer as GradientLayer} />}
 
       {selected && showGuides && layer.type !== "background" && (
         <>
