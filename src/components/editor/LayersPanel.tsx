@@ -36,7 +36,6 @@ export function LayersPanel() {
         <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Layers
         </span>
-        <div className="flex items-center gap-1">
         <NewLayerButtons addLayer={addLayer} />
       </div>
 
