@@ -219,6 +219,7 @@ function LayerView({
               }}
             />
           ))}
+          {layer.type === "gradient" && <GradientHandles layer={layer as GradientLayer} />}
         </>
       )}
     </div>
