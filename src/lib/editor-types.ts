@@ -1,4 +1,4 @@
-export type LayerType = "background" | "image" | "text";
+export type LayerType = "background" | "image" | "text" | "gradient";
 
 export interface BaseLayer {
   id: string;
