@@ -37,28 +37,7 @@ export function LayersPanel() {
           Layers
         </span>
         <div className="flex items-center gap-1">
-          <button
-            onClick={() => addLayer("text")}
-            title="Add text"
-            className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-          >
-            <Type className="h-3.5 w-3.5" />
-          </button>
-          <button
-            onClick={() => addLayer("image")}
-            title="Add image"
-            className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-          >
-            <ImageIcon className="h-3.5 w-3.5" />
-          </button>
-          <button
-            onClick={() => addLayer("text")}
-            title="New layer"
-            className="rounded-md p-1.5 text-primary hover:bg-accent"
-          >
-            <Plus className="h-3.5 w-3.5" />
-          </button>
-        </div>
+        <NewLayerButtons addLayer={addLayer} />
       </div>
 
       <div className="flex-1 overflow-auto py-1">
