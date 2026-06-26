@@ -268,6 +268,7 @@ export const useEditor = create<EditorState>((set, get) => ({
   updateText: (id, patch) => get().updateLayer(id, patch as Partial<Layer>),
   updateImage: (id, patch) => get().updateLayer(id, patch as Partial<Layer>),
   updateBackground: (id, patch) => get().updateLayer(id, patch as Partial<Layer>),
+  updateGradient: (id, patch) => get().updateLayer(id, patch as Partial<Layer>),
 
   removeLayer: (id) => {
     get().pushHistory();
