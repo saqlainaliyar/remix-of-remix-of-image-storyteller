@@ -6,6 +6,8 @@ import { env } from "./env.js";
 import { authRoutes } from "./auth/routes.js";
 import { templateRoutes } from "./templates/routes.js";
 import { uploadRoutes } from "./uploads/routes.js";
+import { apiKeyRoutes } from "./apikeys/routes.js";
+import { v1Routes } from "./v1/routes.js";
 
 await mkdir(join(env.STORAGE_DIR, "uploads"), { recursive: true });
 await mkdir(join(env.STORAGE_DIR, "thumbnails"), { recursive: true });
@@ -26,6 +28,8 @@ app.get("/health", (_req, res) => res.json({ ok: true }));
 app.use("/api/auth", authRoutes);
 app.use("/api/templates", templateRoutes);
 app.use("/api/uploads", uploadRoutes);
+app.use("/api/keys", apiKeyRoutes);
+app.use("/api/v1", v1Routes);
 
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error(err);
