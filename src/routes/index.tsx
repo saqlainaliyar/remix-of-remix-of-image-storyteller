@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
+import { useAuth } from "@/lib/auth-store";
 import { ArrowRight, Image, Layers, Sparkles, Zap, Code2, Database } from "lucide-react";
 
 export const Route = createFileRoute("/")({
