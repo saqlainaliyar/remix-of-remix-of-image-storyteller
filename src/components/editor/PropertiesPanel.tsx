@@ -25,6 +25,7 @@ export function PropertiesPanel() {
         {layer?.type === "background" && <BackgroundProps layer={layer} />}
         {layer?.type === "image" && <ImageProps layer={layer} />}
         {layer?.type === "text" && <TextProps layer={layer} />}
+        {layer?.type === "gradient" && <GradientProps layer={layer} />}
       </div>
     </aside>
   );
