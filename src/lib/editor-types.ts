@@ -100,7 +100,7 @@ export interface TextLayer extends BaseLayer {
   secondary: TextStyle;
 }
 
-export type Layer = BackgroundLayer | ImageLayer | TextLayer;
+export type Layer = BackgroundLayer | ImageLayer | TextLayer | GradientLayer;
 
 export interface CanvasPreset {
   id: string;
