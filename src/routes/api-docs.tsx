@@ -100,8 +100,10 @@ function ApiDocsPage() {
         </section>
 
         <section className="rounded-xl border border-dashed border-border bg-panel p-6 text-sm text-muted-foreground">
-          The hosted API endpoint shown above is illustrative — this preview build runs entirely in your browser.
-          Enable Lovable Cloud to deploy the render service and get a live API key.
+          Generate keys on the <a href="/api-keys" className="text-primary hover:underline">API Keys</a> page.
+          Each key is limited to <b>30 requests per month</b>. Exceeding the limit returns
+          <code className="mx-1 rounded bg-secondary px-1">429 Too Many Requests</code>
+          with an <code className="rounded bg-secondary px-1">X-RateLimit-Reset</code> header.
         </section>
       </div>
     </AppShell>
