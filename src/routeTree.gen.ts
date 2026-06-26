@@ -13,6 +13,7 @@ import { Route as TemplatesRouteImport } from './routes/templates'
 import { Route as EditorRouteImport } from './routes/editor'
 import { Route as BrandKitRouteImport } from './routes/brand-kit'
 import { Route as BatchRouteImport } from './routes/batch'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ApiDocsRouteImport } from './routes/api-docs'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -36,6 +37,11 @@ const BatchRoute = BatchRouteImport.update({
   path: '/batch',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiDocsRoute = ApiDocsRouteImport.update({
   id: '/api-docs',
   path: '/api-docs',
@@ -50,6 +56,7 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api-docs': typeof ApiDocsRoute
+  '/auth': typeof AuthRoute
   '/batch': typeof BatchRoute
   '/brand-kit': typeof BrandKitRoute
   '/editor': typeof EditorRoute
@@ -58,6 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api-docs': typeof ApiDocsRoute
+  '/auth': typeof AuthRoute
   '/batch': typeof BatchRoute
   '/brand-kit': typeof BrandKitRoute
   '/editor': typeof EditorRoute
@@ -67,6 +75,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/api-docs': typeof ApiDocsRoute
+  '/auth': typeof AuthRoute
   '/batch': typeof BatchRoute
   '/brand-kit': typeof BrandKitRoute
   '/editor': typeof EditorRoute
@@ -77,16 +86,25 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/api-docs'
+    | '/auth'
     | '/batch'
     | '/brand-kit'
     | '/editor'
     | '/templates'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api-docs' | '/batch' | '/brand-kit' | '/editor' | '/templates'
+  to:
+    | '/'
+    | '/api-docs'
+    | '/auth'
+    | '/batch'
+    | '/brand-kit'
+    | '/editor'
+    | '/templates'
   id:
     | '__root__'
     | '/'
     | '/api-docs'
+    | '/auth'
     | '/batch'
     | '/brand-kit'
     | '/editor'
@@ -96,6 +114,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApiDocsRoute: typeof ApiDocsRoute
+  AuthRoute: typeof AuthRoute
   BatchRoute: typeof BatchRoute
   BrandKitRoute: typeof BrandKitRoute
   EditorRoute: typeof EditorRoute
@@ -132,6 +151,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BatchRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api-docs': {
       id: '/api-docs'
       path: '/api-docs'
@@ -152,6 +178,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiDocsRoute: ApiDocsRoute,
+  AuthRoute: AuthRoute,
   BatchRoute: BatchRoute,
   BrandKitRoute: BrandKitRoute,
   EditorRoute: EditorRoute,
@@ -160,13 +187,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

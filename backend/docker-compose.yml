@@ -1,0 +1,37 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: frameforge
+      POSTGRES_PASSWORD: frameforge
+      POSTGRES_DB: frameforge
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+  api:
+    build: .
+    restart: unless-stopped
+    depends_on: [postgres, redis]
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://frameforge:frameforge@postgres:5432/frameforge
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./storage:/app/storage
+
+volumes:
+  pg-data:
+  redis-data:
