@@ -68,11 +68,17 @@ function TemplatesPage() {
         <div className="flex items-end justify-between">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight">Templates</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Saved in your browser. {templates.length} total.</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {remote ? `Synced with backend · ${templates.length} total.` : `Saved in your browser. ${templates.length} total.`}
+            </p>
+            {remoteError && <p className="mt-1 text-xs text-destructive">{remoteError}</p>}
           </div>
-          <button onClick={newTemplate} className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:opacity-90">
-            <Plus className="h-4 w-4" /> New template
-          </button>
+          <div className="flex items-center gap-3">
+            <AuthBadge />
+            <button onClick={newTemplate} className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:opacity-90">
+              <Plus className="h-4 w-4" /> New template
+            </button>
+          </div>
         </div>
 
         {templates.length === 0 ? (
@@ -89,7 +95,7 @@ function TemplatesPage() {
                 <Link to="/editor" search={{ id: t.id }} className="block">
                   <div className="checker-bg aspect-video w-full overflow-hidden">
                     {t.thumbnail ? (
-                      <img src={t.thumbnail} alt={t.name} className="h-full w-full object-contain" />
+                      <img src={assetUrl(t.thumbnail)} alt={t.name} className="h-full w-full object-contain" />
                     ) : (
                       <div className="grid h-full place-items-center text-xs text-muted-foreground">No preview</div>
                     )}
@@ -101,11 +107,14 @@ function TemplatesPage() {
                     <div className="text-[11px] text-muted-foreground">{t.width}×{t.height} · {new Date(t.updatedAt).toLocaleDateString()}</div>
                   </div>
                   <button
-                    onClick={() => {
-                      if (confirm("Delete this template?")) {
+                    onClick={async () => {
+                      if (!confirm("Delete this template?")) return;
+                      if (remote) {
+                        try { await api.templates.remove(t.id); } catch (e: any) { setRemoteError(e.message); }
+                      } else {
                         deleteTemplate(t.id);
-                        setTemplates(listTemplates());
                       }
+                      void refresh();
                     }}
                     className="rounded-md p-2 text-muted-foreground hover:bg-accent hover:text-destructive"
                   >
@@ -120,3 +129,4 @@ function TemplatesPage() {
     </AppShell>
   );
 }
+
