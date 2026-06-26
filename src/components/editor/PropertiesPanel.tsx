@@ -491,3 +491,82 @@ function GradientEditor({ value, onChange }: { value: Gradient; onChange: (v: Gr
     </div>
   );
 }
+
+const BLEND_MODES: BlendMode[] = [
+  "normal", "multiply", "screen", "overlay", "soft-light", "hard-light",
+  "color-dodge", "color-burn", "darken", "lighten", "difference", "exclusion",
+];
+
+const GRADIENT_TYPES: GradientType[] = ["linear", "radial", "angular", "diamond"];
+
+function GradientProps({ layer }: { layer: GradientLayer }) {
+  const update = useEditor((s) => s.updateGradient);
+  const setG = (patch: Partial<Gradient>) =>
+    update(layer.id, { gradient: { ...layer.gradient, ...patch } });
+
+  const reset = () => {
+    update(layer.id, {
+      gradient: {
+        type: "linear",
+        angle: 90,
+        stops: [
+          { color: "#000000", position: 0, opacity: 1 },
+          { color: "#ffffff", position: 100, opacity: 0 },
+        ],
+      },
+      blendMode: "normal",
+      scale: 1,
+      reversed: false,
+    });
+  };
+
+  return (
+    <div className="space-y-4">
+      <Field label="Gradient type">
+        <Select
+          value={layer.gradient.type}
+          onChange={(v) => setG({ type: v })}
+          options={GRADIENT_TYPES.map((t) => ({ label: t[0].toUpperCase() + t.slice(1), value: t }))}
+        />
+      </Field>
+
+      <Field label="Blend mode">
+        <Select
+          value={layer.blendMode}
+          onChange={(v) => update(layer.id, { blendMode: v })}
+          options={BLEND_MODES.map((m) => ({ label: m, value: m }))}
+        />
+      </Field>
+
+      <Row>
+        <Field label="Angle">
+          <NumberInput value={layer.gradient.angle} onChange={(v) => setG({ angle: v })} suffix="°" />
+        </Field>
+        <Field label="Scale">
+          <NumberInput value={layer.scale * 100} onChange={(v) => update(layer.id, { scale: Math.max(0.25, Math.min(4, v / 100)) })} suffix="%" />
+        </Field>
+      </Row>
+
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => update(layer.id, { reversed: !layer.reversed })}
+          className={`flex flex-1 items-center justify-center gap-1.5 rounded-md border border-input px-3 py-1.5 text-xs hover:bg-accent ${layer.reversed ? "bg-accent" : ""}`}
+        >
+          <FlipHorizontal2 className="h-3.5 w-3.5" /> Reverse
+        </button>
+        <button
+          type="button"
+          onClick={reset}
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-md border border-input px-3 py-1.5 text-xs hover:bg-accent"
+        >
+          <RotateCcw className="h-3.5 w-3.5" /> Reset
+        </button>
+      </div>
+
+      <Field label="Color stops">
+        <GradientEditor value={layer.gradient} onChange={(g) => update(layer.id, { gradient: g })} />
+      </Field>
+    </div>
+  );
+}
