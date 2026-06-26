@@ -16,6 +16,9 @@ export const Route = createFileRoute("/")({
 });
 
 function Landing() {
+  const { user } = useAuth();
+  const ctaTo = user ? "/editor" : "/auth";
+  const ctaLabel = user ? "Launch editor" : "Sign in to start";
   return (
     <AppShell>
       <section className="relative overflow-hidden border-b border-border bg-gradient-to-b from-background to-secondary/40">
@@ -33,11 +36,11 @@ function Landing() {
             ads, and personalized campaigns.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Link to="/editor" className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-medium text-primary-foreground hover:opacity-90">
-              Launch editor <ArrowRight className="h-4 w-4" />
+            <Link to={ctaTo} className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-medium text-primary-foreground hover:opacity-90">
+              {ctaLabel} <ArrowRight className="h-4 w-4" />
             </Link>
-            <Link to="/templates" className="inline-flex items-center gap-2 rounded-lg border border-input bg-background px-5 py-3 text-sm font-medium hover:bg-accent">
-              Browse templates
+            <Link to={user ? "/templates" : "/auth"} className="inline-flex items-center gap-2 rounded-lg border border-input bg-background px-5 py-3 text-sm font-medium hover:bg-accent">
+              {user ? "Browse templates" : "Create account"}
             </Link>
           </div>
 
