@@ -377,7 +377,11 @@ function GradientHandles({ layer }: { layer: GradientLayer }) {
   const angle = layer.gradient.angle;
   const isRadial = layer.gradient.type === "radial" || layer.gradient.type === "diamond";
 
-  const onDown = (e: React.MouseEvent, which: "end" | "scale") => {
+  const feather = Math.max(0, layer.feather ?? 0);
+  const featherShape = layer.featherShape ?? "rect";
+  const maxFeather = Math.max(1, Math.min(layer.width, layer.height) / 2);
+
+  const onDown = (e: React.MouseEvent, which: "end" | "scale" | "feather") => {
     e.stopPropagation();
     pushHistory();
     const rect = ref.current?.getBoundingClientRect();
@@ -388,16 +392,22 @@ function GradientHandles({ layer }: { layer: GradientLayer }) {
       const dx = ev.clientX - cx;
       const dy = ev.clientY - cy;
       if (which === "end") {
-        // CSS gradient angle: 0deg points up, increases clockwise.
         const deg = (Math.atan2(dx, -dy) * 180) / Math.PI;
         let a = (deg + 360) % 360;
         if (ev.shiftKey) a = Math.round(a / 15) * 15;
         updateGradient(layer.id, { gradient: { ...layer.gradient, angle: a } });
-      } else {
+      } else if (which === "scale") {
         const dist = Math.hypot(dx, dy) / zoom;
         const halfDiag = Math.hypot(layer.width, layer.height) / 2;
         const scale = Math.max(0.25, Math.min(4, dist / Math.max(1, halfDiag) * 2));
         updateGradient(layer.id, { scale });
+      } else {
+        // feather handle: distance from top-center inward (layer px)
+        const topY = rect.top;
+        const dyTop = (ev.clientY - topY) / zoom;
+        let f = Math.max(0, Math.min(maxFeather, dyTop));
+        if (ev.shiftKey) f = Math.round(f / 5) * 5;
+        updateGradient(layer.id, { feather: f });
       }
     };
     const onUp = () => {
@@ -407,6 +417,9 @@ function GradientHandles({ layer }: { layer: GradientLayer }) {
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseup", onUp);
   };
+
+  // Feather handle position as % from top
+  const featherPct = (feather / Math.max(1, layer.height)) * 100;
 
   // End point along angle direction (CSS angle: 0 = up, clockwise).
   const rad = (angle - 90) * (Math.PI / 180);
