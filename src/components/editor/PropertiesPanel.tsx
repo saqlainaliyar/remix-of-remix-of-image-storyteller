@@ -553,6 +553,34 @@ function GradientProps({ layer }: { layer: GradientLayer }) {
         </Field>
       </Row>
 
+      <Field label={`Feather (soft edges) — ${feather}px`}>
+        <input
+          type="range"
+          min={0}
+          max={maxFeather}
+          step={1}
+          value={Math.min(feather, maxFeather)}
+          onChange={(e) => update(layer.id, { feather: Number(e.target.value) })}
+          className="w-full"
+        />
+      </Field>
+      {feather > 0 && (
+        <Field label="Edge shape">
+          <div className="flex overflow-hidden rounded-md border border-input text-[11px]">
+            {(["rect", "ellipse"] as const).map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => update(layer.id, { featherShape: s })}
+                className={`flex-1 px-2 py-1.5 capitalize ${featherShape === s ? "bg-primary text-primary-foreground" : "bg-background hover:bg-accent"}`}
+              >
+                {s === "rect" ? "Rectangle" : "Ellipse"}
+              </button>
+            ))}
+          </div>
+        </Field>
+      )}
+
       <div className="flex gap-2">
         <button
           type="button"
