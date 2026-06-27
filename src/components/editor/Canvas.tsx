@@ -329,6 +329,28 @@ function RenderGradient({ layer }: { layer: GradientLayer }) {
     : layer.gradient;
   // Apply scale by sizing the gradient via background-size (works for radial/linear/diamond).
   const size = `${layer.scale * 100}% ${layer.scale * 100}%`;
+
+  const feather = Math.max(0, layer.feather ?? 0);
+  const featherShape = layer.featherShape ?? "rect";
+  const maskStyle: React.CSSProperties = {};
+  if (feather > 0) {
+    if (featherShape === "ellipse") {
+      // opaque core, transparent at edge
+      const inset = Math.max(0, 100 - (feather / Math.max(1, Math.min(layer.width, layer.height))) * 100);
+      const mask = `radial-gradient(ellipse closest-side at 50% 50%, #000 ${inset}%, transparent 100%)`;
+      maskStyle.WebkitMaskImage = mask;
+      maskStyle.maskImage = mask;
+    } else {
+      // rect feather: intersect a horizontal and vertical fade
+      const h = `linear-gradient(to right, transparent 0, #000 ${feather}px, #000 calc(100% - ${feather}px), transparent 100%)`;
+      const v = `linear-gradient(to bottom, transparent 0, #000 ${feather}px, #000 calc(100% - ${feather}px), transparent 100%)`;
+      maskStyle.WebkitMaskImage = `${h}, ${v}`;
+      maskStyle.maskImage = `${h}, ${v}`;
+      (maskStyle as any).WebkitMaskComposite = "source-in";
+      (maskStyle as any).maskComposite = "intersect";
+    }
+  }
+
   return (
     <div
       style={{
@@ -340,6 +362,7 @@ function RenderGradient({ layer }: { layer: GradientLayer }) {
         backgroundRepeat: "no-repeat",
         mixBlendMode: layer.blendMode === "normal" ? undefined : (layer.blendMode as React.CSSProperties["mixBlendMode"]),
         willChange: "transform, opacity",
+        ...maskStyle,
       }}
     />
   );
