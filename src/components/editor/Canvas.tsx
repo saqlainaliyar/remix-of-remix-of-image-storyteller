@@ -494,6 +494,36 @@ function GradientHandles({ layer }: { layer: GradientLayer }) {
         }}
         title="Drag to scale gradient"
       />
+      {/* Feather handle: drag down from top to increase soft-edge radius */}
+      <div
+        onMouseDown={(e) => onDown(e, "feather")}
+        style={{
+          position: "absolute",
+          left: "50%",
+          top: `${featherPct}%`,
+          width: 14,
+          height: 14,
+          marginLeft: -7,
+          marginTop: -7,
+          borderRadius: featherShape === "ellipse" ? 9999 : 2,
+          background: "#fff",
+          border: "2px dashed #10b981",
+          cursor: "ns-resize",
+          pointerEvents: "auto",
+          boxShadow: "0 1px 4px rgba(0,0,0,0.3)",
+        }}
+        title={`Drag to adjust feather (${Math.round(feather)}px) — Shift = snap 5px`}
+      />
+      {/* Feather guide line from top edge to handle */}
+      {feather > 0 && (
+        <svg
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }}
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+        >
+          <line x1="50" y1="0" x2="50" y2={featherPct} stroke="#10b981" strokeWidth="0.4" strokeDasharray="1 1" />
+        </svg>
+      )}
     </div>
   );
 }
