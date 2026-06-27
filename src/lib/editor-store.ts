@@ -248,6 +248,8 @@ export const useEditor = create<EditorState>((set, get) => ({
               blendMode: "normal",
               scale: 1,
               reversed: false,
+              feather: 0,
+              featherShape: "rect",
             };
       return {
         template: { ...s.template, layers: [...s.template.layers, layer], updatedAt: Date.now() },

@@ -45,12 +45,16 @@ export type BlendMode =
   | "difference"
   | "exclusion";
 
+export type FeatherShape = "rect" | "ellipse";
+
 export interface GradientLayer extends BaseLayer {
   type: "gradient";
   gradient: Gradient;
   blendMode: BlendMode;
   scale: number; // 0.25..4, default 1
   reversed: boolean;
+  feather: number; // px, default 0; soft-edge falloff at layer boundary
+  featherShape: FeatherShape; // "rect" | "ellipse", default "rect"
 }
 
 export interface BackgroundLayer extends BaseLayer {

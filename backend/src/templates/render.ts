@@ -129,8 +129,63 @@ async function drawImage(ctx: any, layer: any) {
 }
 
 function drawGradient(ctx: any, layer: any, _w: number, _h: number) {
-  applyGradientFill(ctx, layer.gradient, layer.x, layer.y, layer.width, layer.height, layer.reversed);
-  ctx.fillRect(layer.x, layer.y, layer.width, layer.height);
+  const { x, y, width: w, height: h } = layer;
+  const feather = Math.max(0, Number(layer.feather ?? 0));
+  if (!feather) {
+    applyGradientFill(ctx, layer.gradient, x, y, w, h, layer.reversed);
+    ctx.fillRect(x, y, w, h);
+    return;
+  }
+  // Render gradient + feather mask to an offscreen canvas so destination-in
+  // does not erase layers beneath this one.
+  const off = new Canvas(Math.max(1, Math.ceil(w)), Math.max(1, Math.ceil(h)));
+  const octx: any = off.getContext("2d");
+  applyGradientFill(octx, layer.gradient, 0, 0, w, h, layer.reversed);
+  octx.fillRect(0, 0, w, h);
+  drawFeatherMask(octx, feather, w, h, layer.featherShape ?? "rect");
+  ctx.drawImage(off, x, y);
+}
+
+function drawFeatherMask(ctx: any, feather: number, w: number, h: number, shape: string) {
+  ctx.save();
+  ctx.globalCompositeOperation = "destination-in";
+  if (shape === "ellipse") {
+    const rx = w / 2;
+    const ry = h / 2;
+    const innerRatio = Math.max(0, 1 - feather / Math.max(1, Math.min(w, h) / 2));
+    ctx.translate(rx, ry);
+    ctx.scale(rx, ry);
+    const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, 1);
+    grad.addColorStop(0, "rgba(0,0,0,1)");
+    grad.addColorStop(Math.max(0, Math.min(1, innerRatio)), "rgba(0,0,0,1)");
+    grad.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = grad;
+    ctx.fillRect(-1, -1, 2, 2);
+  } else {
+    const f = Math.min(feather, Math.min(w, h) / 2);
+    ctx.fillStyle = "rgba(0,0,0,1)";
+    ctx.fillRect(f, f, w - 2 * f, h - 2 * f);
+    let g = ctx.createLinearGradient(0, 0, f, 0);
+    g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, "rgba(0,0,0,1)");
+    ctx.fillStyle = g; ctx.fillRect(0, f, f, h - 2 * f);
+    g = ctx.createLinearGradient(w - f, 0, w, 0);
+    g.addColorStop(0, "rgba(0,0,0,1)"); g.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = g; ctx.fillRect(w - f, f, f, h - 2 * f);
+    g = ctx.createLinearGradient(0, 0, 0, f);
+    g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, "rgba(0,0,0,1)");
+    ctx.fillStyle = g; ctx.fillRect(f, 0, w - 2 * f, f);
+    g = ctx.createLinearGradient(0, h - f, 0, h);
+    g.addColorStop(0, "rgba(0,0,0,1)"); g.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = g; ctx.fillRect(f, h - f, w - 2 * f, f);
+    const corner = (cx: number, cy: number) => {
+      const cg = ctx.createRadialGradient(cx, cy, 0, cx, cy, f);
+      cg.addColorStop(0, "rgba(0,0,0,1)"); cg.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = cg;
+      ctx.fillRect(cx - f, cy - f, f * 2, f * 2);
+    };
+    corner(f, f); corner(w - f, f); corner(f, h - f); corner(w - f, h - f);
+  }
+  ctx.restore();
 }
 
 function applyGradientFill(ctx: any, g: any, x: number, y: number, w: number, h: number, reversed = false) {

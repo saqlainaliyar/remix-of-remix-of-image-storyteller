@@ -517,8 +517,14 @@ function GradientProps({ layer }: { layer: GradientLayer }) {
       blendMode: "normal",
       scale: 1,
       reversed: false,
+      feather: 0,
+      featherShape: "rect",
     });
   };
+
+  const maxFeather = Math.max(0, Math.floor(Math.min(layer.width, layer.height) / 2));
+  const feather = layer.feather ?? 0;
+  const featherShape = layer.featherShape ?? "rect";
 
   return (
     <div className="space-y-4">
@@ -546,6 +552,34 @@ function GradientProps({ layer }: { layer: GradientLayer }) {
           <NumberInput value={layer.scale * 100} onChange={(v) => update(layer.id, { scale: Math.max(0.25, Math.min(4, v / 100)) })} suffix="%" />
         </Field>
       </Row>
+
+      <Field label={`Feather (soft edges) — ${feather}px`}>
+        <input
+          type="range"
+          min={0}
+          max={maxFeather}
+          step={1}
+          value={Math.min(feather, maxFeather)}
+          onChange={(e) => update(layer.id, { feather: Number(e.target.value) })}
+          className="w-full"
+        />
+      </Field>
+      {feather > 0 && (
+        <Field label="Edge shape">
+          <div className="flex overflow-hidden rounded-md border border-input text-[11px]">
+            {(["rect", "ellipse"] as const).map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => update(layer.id, { featherShape: s })}
+                className={`flex-1 px-2 py-1.5 capitalize ${featherShape === s ? "bg-primary text-primary-foreground" : "bg-background hover:bg-accent"}`}
+              >
+                {s === "rect" ? "Rectangle" : "Ellipse"}
+              </button>
+            ))}
+          </div>
+        </Field>
+      )}
 
       <div className="flex gap-2">
         <button
