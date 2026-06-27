@@ -517,8 +517,14 @@ function GradientProps({ layer }: { layer: GradientLayer }) {
       blendMode: "normal",
       scale: 1,
       reversed: false,
+      feather: 0,
+      featherShape: "rect",
     });
   };
+
+  const maxFeather = Math.max(0, Math.floor(Math.min(layer.width, layer.height) / 2));
+  const feather = layer.feather ?? 0;
+  const featherShape = layer.featherShape ?? "rect";
 
   return (
     <div className="space-y-4">
