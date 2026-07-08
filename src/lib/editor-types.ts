@@ -45,6 +45,7 @@ export type BlendMode =
   | "difference"
   | "exclusion";
 
+/** @deprecated Feather is now top-edge only; kept for save-file compat. */
 export type FeatherShape = "rect" | "ellipse";
 
 export interface GradientLayer extends BaseLayer {
@@ -53,8 +54,10 @@ export interface GradientLayer extends BaseLayer {
   blendMode: BlendMode;
   scale: number; // 0.25..4, default 1
   reversed: boolean;
-  feather: number; // px, default 0; soft-edge falloff at layer boundary
-  featherShape: FeatherShape; // "rect" | "ellipse", default "rect"
+  feather: number; // px, default 0; TOP-edge soft mask (Illustrator style)
+  featherSoftness: number; // 0.2..3, default 1; falloff curve for the top mask
+  /** @deprecated Ignored by renderers — feather is top-only now. */
+  featherShape?: FeatherShape;
 }
 
 export interface BackgroundLayer extends BaseLayer {
