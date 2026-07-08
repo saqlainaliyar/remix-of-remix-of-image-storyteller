@@ -239,16 +239,17 @@ export const useEditor = create<EditorState>((set, get) => ({
               locked: false,
               gradient: {
                 type: "linear",
-                angle: 90,
+                angle: 180,
                 stops: [
-                  { color: "#000000", position: 0, opacity: 1 },
-                  { color: "#ffffff", position: 100, opacity: 0 },
+                  { color: "#000000", position: 0, opacity: 0 },
+                  { color: "#111111", position: 100, opacity: 1 },
                 ],
               },
               blendMode: "normal",
               scale: 1,
               reversed: false,
               feather: 0,
+              featherSoftness: 1,
               featherShape: "rect",
             };
       return {
