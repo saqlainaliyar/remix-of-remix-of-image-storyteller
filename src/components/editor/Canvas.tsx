@@ -499,7 +499,7 @@ function GradientHandles({ layer }: { layer: GradientLayer }) {
           height: 14,
           marginLeft: -7,
           marginTop: -7,
-          borderRadius: featherShape === "ellipse" ? 9999 : 2,
+          borderRadius: 2,
           background: "#fff",
           border: "2px dashed #10b981",
           cursor: "ns-resize",
