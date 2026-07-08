@@ -87,6 +87,10 @@ function ApiDocsPage() {
                   ["image_url", "image layers", "URL of an image to load into the container."],
                   ["fit", "image layers", "cover | contain | fill | stretch"],
                   ["hide", "any", "Set true to hide the layer from this render."],
+                  ["feather", "gradient layers", "Top-edge soft mask in px (Illustrator style). Fades the top of the layer to transparent."],
+                  ["featherSoftness", "gradient layers", "0.2–3 (default 1). Falloff curve for the top feather — lower is harder, higher is softer."],
+                  ["featherShape", "gradient layers", "Deprecated — ignored by the renderer. Feather is top-edge only."],
+                  ["blendMode", "gradient layers", "CSS mix-blend-mode value (multiply, screen, overlay, …). Applied against layers beneath."],
                 ].map((r) => (
                   <tr key={r[0]} className="border-t border-border">
                     <td className="px-4 py-2 font-mono">{r[0]}</td>

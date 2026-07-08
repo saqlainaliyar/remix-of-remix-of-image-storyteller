@@ -508,23 +508,34 @@ function GradientProps({ layer }: { layer: GradientLayer }) {
     update(layer.id, {
       gradient: {
         type: "linear",
-        angle: 90,
+        angle: 180,
         stops: [
-          { color: "#000000", position: 0, opacity: 1 },
-          { color: "#ffffff", position: 100, opacity: 0 },
+          { color: "#000000", position: 0, opacity: 0 },
+          { color: "#111111", position: 100, opacity: 1 },
         ],
       },
       blendMode: "normal",
       scale: 1,
       reversed: false,
       feather: 0,
-      featherShape: "rect",
+      featherSoftness: 1,
+    });
+  };
+
+  const emphasizeBottom = () => {
+    const stops = [...layer.gradient.stops].sort((a, b) => a.position - b.position);
+    if (stops.length < 2) return;
+    stops[0] = { ...stops[0], opacity: 0 };
+    const last = stops.length - 1;
+    stops[last] = { ...stops[last], opacity: 1, position: Math.max(stops[last].position, 85) };
+    update(layer.id, {
+      gradient: { ...layer.gradient, angle: 180, stops },
     });
   };
 
   const maxFeather = Math.max(0, Math.floor(Math.min(layer.width, layer.height) / 2));
   const feather = layer.feather ?? 0;
-  const featherShape = layer.featherShape ?? "rect";
+  const softness = layer.featherSoftness ?? 1;
 
   return (
     <div className="space-y-4">
@@ -553,31 +564,28 @@ function GradientProps({ layer }: { layer: GradientLayer }) {
         </Field>
       </Row>
 
-      <Field label={`Feather (soft edges) — ${feather}px`}>
+      <Field label={`Feather top edge — ${feather.toFixed(1)}px`}>
         <input
           type="range"
           min={0}
           max={maxFeather}
-          step={1}
+          step={0.5}
           value={Math.min(feather, maxFeather)}
           onChange={(e) => update(layer.id, { feather: Number(e.target.value) })}
           className="w-full"
         />
       </Field>
       {feather > 0 && (
-        <Field label="Edge shape">
-          <div className="flex overflow-hidden rounded-md border border-input text-[11px]">
-            {(["rect", "ellipse"] as const).map((s) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => update(layer.id, { featherShape: s })}
-                className={`flex-1 px-2 py-1.5 capitalize ${featherShape === s ? "bg-primary text-primary-foreground" : "bg-background hover:bg-accent"}`}
-              >
-                {s === "rect" ? "Rectangle" : "Ellipse"}
-              </button>
-            ))}
-          </div>
+        <Field label={`Softness — ${softness.toFixed(2)}×`}>
+          <input
+            type="range"
+            min={0.2}
+            max={3}
+            step={0.05}
+            value={softness}
+            onChange={(e) => update(layer.id, { featherSoftness: Number(e.target.value) })}
+            className="w-full"
+          />
         </Field>
       )}
 
@@ -588,6 +596,14 @@ function GradientProps({ layer }: { layer: GradientLayer }) {
           className={`flex flex-1 items-center justify-center gap-1.5 rounded-md border border-input px-3 py-1.5 text-xs hover:bg-accent ${layer.reversed ? "bg-accent" : ""}`}
         >
           <FlipHorizontal2 className="h-3.5 w-3.5" /> Reverse
+        </button>
+        <button
+          type="button"
+          onClick={emphasizeBottom}
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-md border border-input px-3 py-1.5 text-xs hover:bg-accent"
+          title="Fade top, strengthen bottom"
+        >
+          Bottom emphasis
         </button>
         <button
           type="button"
