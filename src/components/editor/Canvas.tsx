@@ -180,6 +180,10 @@ function LayerView({
     height: layer.height,
     transform: `rotate(${layer.rotation}deg)`,
     opacity: layer.opacity,
+    mixBlendMode:
+      layer.type === "gradient" && layer.blendMode && layer.blendMode !== "normal"
+        ? (layer.blendMode as React.CSSProperties["mixBlendMode"])
+        : undefined,
   };
 
   return (
