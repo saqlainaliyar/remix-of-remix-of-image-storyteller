@@ -372,7 +372,6 @@ function GradientHandles({ layer }: { layer: GradientLayer }) {
   const isRadial = layer.gradient.type === "radial" || layer.gradient.type === "diamond";
 
   const feather = Math.max(0, layer.feather ?? 0);
-  const featherShape = layer.featherShape ?? "rect";
   const maxFeather = Math.max(1, Math.min(layer.width, layer.height) / 2);
 
   const onDown = (e: React.MouseEvent, which: "end" | "scale" | "feather") => {
