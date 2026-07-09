@@ -74,6 +74,10 @@ export interface BackgroundLayer extends BaseLayer {
   imageFit: ImageFit;
 }
 
+export type ImageEffect = "none" | "grayscale" | "sepia" | "blur" | "duotone";
+export type AnchorX = "left" | "center" | "right";
+export type AnchorY = "top" | "center" | "bottom";
+
 export interface ImageLayer extends BaseLayer {
   type: "image";
   imageUrl?: string;
@@ -82,6 +86,9 @@ export interface ImageLayer extends BaseLayer {
   radius: number;
   borderColor: string;
   borderWidth: number;
+  effect?: ImageEffect;
+  anchorX?: AnchorX;
+  anchorY?: AnchorY;
 }
 
 export type TextAlign = "left" | "center" | "right";
