@@ -3,6 +3,7 @@ import { z } from "zod";
 import { pool } from "../db.js";
 import { requireApiKey } from "../apikeys/middleware.js";
 import { renderTemplate } from "../templates/render.js";
+import { applyModification, applyModifications, type Modification } from "../templates/modifications.js";
 
 export const v1Routes = Router();
 v1Routes.use(requireApiKey);
