@@ -53,7 +53,9 @@ v1Routes.patch("/templates/:id/layers/:layerName", async (req, res) => {
   const layers: any[] = row.data?.layers ?? [];
   const idx = layers.findIndex((l) => l.name === req.params.layerName);
   if (idx < 0) return res.status(404).json({ error: `Layer "${req.params.layerName}" not found` });
-  layers[idx] = deepMerge(layers[idx], patch);
+  // Accept either Bannerbear-flat modification fields or a deep-merge patch.
+  const mod: Modification = { name: req.params.layerName, ...(patch as any) };
+  layers[idx] = applyModification(deepMerge(layers[idx], patch), mod);
   const newData = { ...row.data, layers };
   const upd = await pool.query(
     "UPDATE templates SET data=$1, updated_at=now() WHERE id=$2 AND user_id=$3 RETURNING id, name, width, height, data, thumbnail_path, updated_at",
@@ -70,13 +72,20 @@ v1Routes.post("/templates/:id/render", async (req, res) => {
   );
   const row = rows[0];
   if (!row) return res.status(404).json({ error: "Not found" });
+  const baseLayers: any[] = row.data?.layers ?? [];
+  const modifications: Modification[] = req.body?.modifications ?? [];
+  // Back-compat: also accept the old `patches: [{name, patch}]` shape.
   const patches: Array<{ name: string; patch: any }> = req.body?.patches ?? [];
-  const layers = (row.data?.layers ?? []).map((l: any) => {
-    const p = patches.find((x) => x.name === l.name);
-    return p ? deepMerge(l, p.patch) : l;
-  });
+  let layers = applyModifications(baseLayers, modifications);
+  if (patches.length) {
+    layers = layers.map((l) => {
+      const p = patches.find((x) => x.name === l.name);
+      return p ? deepMerge(l, p.patch) : l;
+    });
+  }
   const result = await renderTemplate({
     id: row.id, userId, name: row.name, width: row.width, height: row.height, layers,
+    transparent: !!req.body?.transparent,
   });
   res.json(result);
 });
