@@ -12,6 +12,13 @@ export interface BaseLayer {
   opacity: number;
   visible: boolean;
   locked: boolean;
+  /** Bannerbear-compatible extras — applied on top of type-specific rendering. */
+  shadow?: string;
+  shiftX?: number;
+  shiftY?: number;
+  target?: string; // click URL for PDF renders
+  borderColor?: string;
+  borderWidth?: number;
 }
 
 export type ImageFit = "cover" | "contain" | "fill" | "stretch";
