@@ -13,6 +13,7 @@ interface RenderInput {
   width: number;
   height: number;
   layers: any[];
+  transparent?: boolean;
 }
 
 export interface RenderResult {
