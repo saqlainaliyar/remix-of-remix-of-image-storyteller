@@ -303,6 +303,16 @@ function RenderBackground({ layer }: { layer: BackgroundLayer }) {
 function RenderImage({ layer }: { layer: ImageLayer }) {
   const radius =
     layer.mask === "circle" ? "9999px" : layer.mask === "rounded" ? `${layer.radius}px` : `${layer.radius}px`;
+  const effect = layer.effect ?? "none";
+  const filter =
+    effect === "grayscale" ? "grayscale(1)"
+    : effect === "sepia" ? "sepia(1)"
+    : effect === "blur" ? "blur(6px)"
+    : effect === "duotone" ? "grayscale(1) contrast(1.2)"
+    : undefined;
+  const ax = layer.anchorX ?? "center";
+  const ay = layer.anchorY ?? "center";
+  const objectPosition = `${ax} ${ay}`;
   return (
     <div
       style={{
@@ -329,6 +339,8 @@ function RenderImage({ layer }: { layer: ImageLayer }) {
               layer.fit === "fill" || layer.fit === "stretch"
                 ? "fill"
                 : (layer.fit as "cover" | "contain"),
+            objectPosition,
+            filter,
           }}
           draggable={false}
         />
