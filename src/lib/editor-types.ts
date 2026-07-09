@@ -116,9 +116,11 @@ export interface TextLayer extends BaseLayer {
   letterSpacing: number;
   lineHeight: number;
   align: TextAlign;
+  verticalAlign?: "top" | "center" | "bottom";
   autoFit: boolean;
   primary: TextStyle;
   secondary: TextStyle;
+  secondaryFontFamily?: string;
 }
 
 export type Layer = BackgroundLayer | ImageLayer | TextLayer | GradientLayer;
