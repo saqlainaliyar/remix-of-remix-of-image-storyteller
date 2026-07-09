@@ -253,3 +253,13 @@ function resolveAsset(url: string) {
   const p = url.startsWith("/") ? url.slice(1) : url;
   return join(env.STORAGE_DIR, p);
 }
+
+/** Parse a CSS-like shadow string ("Xpx Ypx Bpx #COLOR") and apply to ctx. */
+function applyShadow(ctx: any, shadow: string) {
+  const m = /^\s*(-?\d+(?:\.\d+)?)px\s+(-?\d+(?:\.\d+)?)px\s+(-?\d+(?:\.\d+)?)px\s+(\S+)/.exec(shadow);
+  if (!m) return;
+  ctx.shadowOffsetX = Number(m[1]);
+  ctx.shadowOffsetY = Number(m[2]);
+  ctx.shadowBlur = Number(m[3]);
+  ctx.shadowColor = m[4];
+}
