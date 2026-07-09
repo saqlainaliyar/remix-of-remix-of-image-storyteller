@@ -25,7 +25,7 @@ export interface RenderResult {
 
 export async function renderTemplate(input: RenderInput): Promise<RenderResult> {
   const hash = createHash("sha256")
-    .update(JSON.stringify({ w: input.width, h: input.height, layers: input.layers }))
+    .update(JSON.stringify({ w: input.width, h: input.height, layers: input.layers, t: !!input.transparent }))
     .digest("hex")
     .slice(0, 16);
   const cacheKey = `render:${hash}`;
@@ -37,9 +37,14 @@ export async function renderTemplate(input: RenderInput): Promise<RenderResult> 
 
   const canvas = new Canvas(input.width, input.height);
   const ctx = canvas.getContext("2d");
+  if (!input.transparent) {
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, input.width, input.height);
+  }
 
   for (const layer of input.layers) {
-    if (layer.visible === false) continue;
+    // `visible: false` OR bannerbear-style `hide: true`
+    if (layer.visible === false || layer.hide === true) continue;
     ctx.save();
     ctx.globalAlpha = layer.opacity ?? 1;
     if (layer.blendMode && layer.blendMode !== "normal") {
@@ -52,6 +57,9 @@ export async function renderTemplate(input: RenderInput): Promise<RenderResult> 
       ctx.rotate(((layer.rotation as number) * Math.PI) / 180);
       ctx.translate(-cx, -cy);
     }
+    if (layer.shadow && typeof layer.shadow === "string" && layer.shadow !== "none") {
+      applyShadow(ctx, layer.shadow);
+    }
 
     if (layer.type === "background") {
       await drawBackground(ctx, layer, input.width, input.height);
@@ -61,6 +69,14 @@ export async function renderTemplate(input: RenderInput): Promise<RenderResult> 
       drawGradient(ctx, layer, input.width, input.height);
     } else if (layer.type === "text") {
       drawText(ctx, layer);
+    }
+
+    // Any-layer border on top
+    if (layer.type !== "image" && layer.borderWidth > 0 && layer.borderColor) {
+      ctx.shadowColor = "transparent";
+      ctx.strokeStyle = layer.borderColor;
+      ctx.lineWidth = layer.borderWidth;
+      ctx.strokeRect(layer.x ?? 0, layer.y ?? 0, layer.width ?? 0, layer.height ?? 0);
     }
 
     ctx.restore();
