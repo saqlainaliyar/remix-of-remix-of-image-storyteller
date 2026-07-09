@@ -12,6 +12,13 @@ export interface BaseLayer {
   opacity: number;
   visible: boolean;
   locked: boolean;
+  /** Bannerbear-compatible extras — applied on top of type-specific rendering. */
+  shadow?: string;
+  shiftX?: number;
+  shiftY?: number;
+  target?: string; // click URL for PDF renders
+  borderColor?: string;
+  borderWidth?: number;
 }
 
 export type ImageFit = "cover" | "contain" | "fill" | "stretch";
@@ -67,6 +74,10 @@ export interface BackgroundLayer extends BaseLayer {
   imageFit: ImageFit;
 }
 
+export type ImageEffect = "none" | "grayscale" | "sepia" | "blur" | "duotone";
+export type AnchorX = "left" | "center" | "right";
+export type AnchorY = "top" | "center" | "bottom";
+
 export interface ImageLayer extends BaseLayer {
   type: "image";
   imageUrl?: string;
@@ -75,6 +86,9 @@ export interface ImageLayer extends BaseLayer {
   radius: number;
   borderColor: string;
   borderWidth: number;
+  effect?: ImageEffect;
+  anchorX?: AnchorX;
+  anchorY?: AnchorY;
 }
 
 export type TextAlign = "left" | "center" | "right";
@@ -102,9 +116,11 @@ export interface TextLayer extends BaseLayer {
   letterSpacing: number;
   lineHeight: number;
   align: TextAlign;
+  verticalAlign?: "top" | "center" | "bottom";
   autoFit: boolean;
   primary: TextStyle;
   secondary: TextStyle;
+  secondaryFontFamily?: string;
 }
 
 export type Layer = BackgroundLayer | ImageLayer | TextLayer | GradientLayer;

@@ -171,15 +171,26 @@ function LayerView({
   onHandleDown: (e: React.MouseEvent, h: Handle) => void;
 }) {
   if (!layer.visible) return null;
+  // Bannerbear `hide` mirrors visible
+  if ((layer as any).hide === true) return null;
+
+  const shiftX = layer.shiftX ?? 0;
+  const shiftY = layer.shiftY ?? 0;
+  const shadow = layer.shadow && layer.shadow !== "none" ? layer.shadow : undefined;
 
   const common: React.CSSProperties = {
     position: "absolute",
-    left: layer.x,
-    top: layer.y,
+    left: layer.x + shiftX,
+    top: layer.y + shiftY,
     width: layer.width,
     height: layer.height,
     transform: `rotate(${layer.rotation}deg)`,
     opacity: layer.opacity,
+    boxShadow: layer.type !== "text" ? shadow : undefined,
+    outline:
+      layer.type !== "image" && layer.borderWidth && layer.borderColor
+        ? `${layer.borderWidth}px solid ${layer.borderColor}`
+        : undefined,
     mixBlendMode:
       layer.type === "gradient" && layer.blendMode && layer.blendMode !== "normal"
         ? (layer.blendMode as React.CSSProperties["mixBlendMode"])
@@ -191,6 +202,7 @@ function LayerView({
       style={common}
       onMouseDown={onMouseDown}
       data-layer-id={layer.id}
+      data-target={layer.target || undefined}
     >
       {layer.type === "background" && <RenderBackground layer={layer as BackgroundLayer} />}
       {layer.type === "image" && <RenderImage layer={layer as ImageLayer} />}
@@ -291,6 +303,16 @@ function RenderBackground({ layer }: { layer: BackgroundLayer }) {
 function RenderImage({ layer }: { layer: ImageLayer }) {
   const radius =
     layer.mask === "circle" ? "9999px" : layer.mask === "rounded" ? `${layer.radius}px` : `${layer.radius}px`;
+  const effect = layer.effect ?? "none";
+  const filter =
+    effect === "grayscale" ? "grayscale(1)"
+    : effect === "sepia" ? "sepia(1)"
+    : effect === "blur" ? "blur(6px)"
+    : effect === "duotone" ? "grayscale(1) contrast(1.2)"
+    : undefined;
+  const ax = layer.anchorX ?? "center";
+  const ay = layer.anchorY ?? "center";
+  const objectPosition = `${ax} ${ay}`;
   return (
     <div
       style={{
@@ -317,6 +339,8 @@ function RenderImage({ layer }: { layer: ImageLayer }) {
               layer.fit === "fill" || layer.fit === "stretch"
                 ? "fill"
                 : (layer.fit as "cover" | "contain"),
+            objectPosition,
+            filter,
           }}
           draggable={false}
         />

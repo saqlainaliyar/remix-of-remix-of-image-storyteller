@@ -26,6 +26,7 @@ export function PropertiesPanel() {
         {layer?.type === "image" && <ImageProps layer={layer} />}
         {layer?.type === "text" && <TextProps layer={layer} />}
         {layer?.type === "gradient" && <GradientProps layer={layer} />}
+        {layer && layer.type !== "background" && <ApiFieldsBlock layer={layer} />}
       </div>
     </aside>
   );
@@ -36,6 +37,135 @@ function EmptyState() {
     <div className="rounded-lg border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
       Click any layer on the canvas to edit its properties.
     </div>
+  );
+}
+
+/** Bannerbear-compatible fields available on every non-background layer. */
+function ApiFieldsBlock({ layer }: { layer: Layer }) {
+  const update = useEditor((s) => s.updateLayer);
+  return (
+    <div className="space-y-3 rounded-lg border border-border bg-secondary/40 p-3">
+      <div className="text-[11px] font-semibold uppercase tracking-wider text-foreground">
+        API fields
+      </div>
+      {layer.type === "image" && <ImageApiExtras layer={layer as ImageLayer} />}
+      {layer.type === "text" && <TextApiExtras layer={layer as TextLayer} />}
+      <Field label="Shadow (e.g. 5px 5px 0 #CCC)">
+        <TextInput
+          value={layer.shadow ?? ""}
+          onChange={(v) => update(layer.id, { shadow: v || undefined })}
+        />
+      </Field>
+      <Row>
+        <Field label="Shift X">
+          <NumberInput
+            value={layer.shiftX ?? 0}
+            onChange={(v) => update(layer.id, { shiftX: v })}
+            suffix="px"
+          />
+        </Field>
+        <Field label="Shift Y">
+          <NumberInput
+            value={layer.shiftY ?? 0}
+            onChange={(v) => update(layer.id, { shiftY: v })}
+            suffix="px"
+          />
+        </Field>
+      </Row>
+      {layer.type !== "image" && (
+        <Row>
+          <Field label="Border width">
+            <NumberInput
+              value={layer.borderWidth ?? 0}
+              onChange={(v) => update(layer.id, { borderWidth: v })}
+              suffix="px"
+            />
+          </Field>
+          <Field label="Border color">
+            <ColorInput
+              value={layer.borderColor ?? "#000000"}
+              onChange={(v) => update(layer.id, { borderColor: v })}
+            />
+          </Field>
+        </Row>
+      )}
+      <Field label="Target URL (PDF link)">
+        <TextInput
+          value={layer.target ?? ""}
+          onChange={(v) => update(layer.id, { target: v || undefined })}
+        />
+      </Field>
+      <label className="flex items-center gap-2 text-xs text-muted-foreground">
+        <input
+          type="checkbox"
+          checked={!layer.visible}
+          onChange={(e) => update(layer.id, { visible: !e.target.checked })}
+        />
+        Hide this layer from renders
+      </label>
+    </div>
+  );
+}
+
+function ImageApiExtras({ layer }: { layer: ImageLayer }) {
+  const update = useEditor((s) => s.updateImage);
+  return (
+    <div className="space-y-3">
+      <Field label="Effect">
+        <Select
+          value={layer.effect ?? "none"}
+          onChange={(v) => update(layer.id, { effect: v as ImageLayer["effect"] })}
+          options={[
+            { label: "None", value: "none" },
+            { label: "Grayscale", value: "grayscale" },
+            { label: "Sepia", value: "sepia" },
+            { label: "Blur", value: "blur" },
+            { label: "Duotone", value: "duotone" },
+          ]}
+        />
+      </Field>
+      <Row>
+        <Field label="Anchor X">
+          <Select
+            value={layer.anchorX ?? "center"}
+            onChange={(v) => update(layer.id, { anchorX: v as ImageLayer["anchorX"] })}
+            options={[
+              { label: "Left", value: "left" },
+              { label: "Center", value: "center" },
+              { label: "Right", value: "right" },
+            ]}
+          />
+        </Field>
+        <Field label="Anchor Y">
+          <Select
+            value={layer.anchorY ?? "center"}
+            onChange={(v) => update(layer.id, { anchorY: v as ImageLayer["anchorY"] })}
+            options={[
+              { label: "Top", value: "top" },
+              { label: "Center", value: "center" },
+              { label: "Bottom", value: "bottom" },
+            ]}
+          />
+        </Field>
+      </Row>
+    </div>
+  );
+}
+
+function TextApiExtras({ layer }: { layer: TextLayer }) {
+  const update = useEditor((s) => s.updateText);
+  return (
+    <Field label="Vertical align">
+      <Select
+        value={layer.verticalAlign ?? "center"}
+        onChange={(v) => update(layer.id, { verticalAlign: v as TextLayer["verticalAlign"] })}
+        options={[
+          { label: "Top", value: "top" },
+          { label: "Center", value: "center" },
+          { label: "Bottom", value: "bottom" },
+        ]}
+      />
+    </Field>
   );
 }
 
